@@ -3,225 +3,386 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#13294b">
 <title>أداة خالد لترجمة لغة الإشارة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --brand: #215aa0;
-    --brand-dark: #16407a;
-    --miss: #aa3c3c;
-    --miss-bg: #f5e6e6;
-    --bg: #eef2f7;
+    --ink: #13294b;
+    --brand: #1f4e8c;
+    --brand-2: #2f6db0;
+    --accent: #f4a72c;
+    --accent-d: #d98c12;
+    --miss: #c0504d;
+    --miss-bg: #fbeceb;
+    --surface: #ffffff;
+    --line: #e3e9f2;
+    --muted: #6b7a90;
+    --radius: 18px;
+    --shadow: 0 10px 30px -12px rgba(19,41,75,.28);
+    --shadow-sm: 0 4px 14px -6px rgba(19,41,75,.22);
   }
   * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
   body {
-    margin: 0;
-    font-family: -apple-system, "Segoe UI", Tahoma, "Geeza Pro", sans-serif;
-    background: var(--bg);
-    color: #1d2733;
+    font-family: "Tajawal", -apple-system, "Segoe UI", Tahoma, sans-serif;
+    color: var(--ink);
+    background:
+      radial-gradient(900px 500px at 100% -5%, #e8f0fb 0%, transparent 60%),
+      radial-gradient(800px 500px at 0% 0%, #fdf3e0 0%, transparent 55%),
+      #eef3f9;
     min-height: 100vh;
+    line-height: 1.6;
   }
+
+  /* ===== الترويسة ===== */
   header {
-    background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(135deg, #13294b 0%, #1f4e8c 60%, #2f6db0 100%);
     color: #fff;
-    padding: 28px 16px;
+    padding: 54px 20px 64px;
     text-align: center;
   }
-  header h1 { margin: 0; font-size: 1.6rem; }
-  header p { margin: 6px 0 0; opacity: .85; font-size: .95rem; }
-  main { max-width: 980px; margin: 0 auto; padding: 24px 16px 60px; }
+  header::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(420px 220px at 85% 0%, rgba(244,167,44,.32), transparent 70%),
+      radial-gradient(360px 240px at 10% 110%, rgba(47,109,176,.55), transparent 70%);
+  }
+  .hero { position: relative; z-index: 1; }
+  .hero .badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(255,255,255,.14);
+    border: 1px solid rgba(255,255,255,.22);
+    padding: 6px 14px; border-radius: 999px;
+    font-size: .82rem; font-weight: 500;
+    backdrop-filter: blur(6px);
+    margin-bottom: 18px;
+  }
+  .hero h1 {
+    margin: 0; font-size: 2.05rem; font-weight: 800;
+    letter-spacing: -.5px;
+  }
+  .hero h1 .wave { display: inline-block; }
+  .hero p {
+    margin: 10px auto 0; max-width: 540px;
+    opacity: .88; font-size: 1.02rem;
+  }
+  .wave-divider {
+    position: absolute; bottom: -1px; left: 0; right: 0;
+    line-height: 0;
+  }
+  .wave-divider svg { width: 100%; height: 46px; display: block; }
+
+  main {
+    max-width: 1000px;
+    margin: -32px auto 0;
+    padding: 0 18px 70px;
+    position: relative; z-index: 2;
+  }
+
+  /* ===== البطاقات ===== */
   .card {
-    background: #fff;
-    border-radius: 14px;
-    padding: 20px;
-    box-shadow: 0 4px 18px rgba(0,0,0,.07);
-    margin-bottom: 22px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 26px;
+    box-shadow: var(--shadow);
+    margin-bottom: 24px;
   }
-  h2.sec { margin: 0 0 14px; font-size: 1.2rem; color: var(--brand-dark); }
+  .card-head {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 18px;
+  }
+  .card-head .ic {
+    width: 44px; height: 44px; flex: none;
+    display: grid; place-items: center;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--brand), var(--brand-2));
+    color: #fff; font-size: 1.3rem;
+    box-shadow: var(--shadow-sm);
+  }
+  .card-head h2 { margin: 0; font-size: 1.22rem; font-weight: 700; }
+  .card-head p { margin: 1px 0 0; font-size: .85rem; color: var(--muted); }
+
+  /* ===== الإدخال ===== */
   textarea {
-    width: 100%;
-    min-height: 90px;
-    font-size: 1.25rem;
-    padding: 12px;
-    border: 2px solid #d4dce6;
-    border-radius: 10px;
-    resize: vertical;
-    font-family: inherit;
+    width: 100%; min-height: 96px;
+    font-family: inherit; font-size: 1.3rem;
+    padding: 16px; border: 2px solid var(--line);
+    border-radius: 14px; resize: vertical;
+    background: #fafbfd; transition: border-color .15s, box-shadow .15s;
   }
-  textarea:focus { outline: none; border-color: var(--brand); }
-  .row { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; align-items: center; }
+  textarea:focus {
+    outline: none; border-color: var(--brand-2);
+    box-shadow: 0 0 0 4px rgba(47,109,176,.13);
+    background: #fff;
+  }
+  .row { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; align-items: center; }
   button {
-    background: var(--brand);
-    color: #fff;
-    border: none;
-    border-radius: 10px;
-    padding: 12px 22px;
-    font-size: 1rem;
-    font-family: inherit;
-    cursor: pointer;
-    transition: background .15s, transform .1s;
+    font-family: inherit; font-size: 1rem; font-weight: 700;
+    border: none; border-radius: 12px; cursor: pointer;
+    padding: 13px 24px;
+    transition: transform .12s, box-shadow .15s, background .15s, filter .15s;
   }
-  button:hover { background: var(--brand-dark); }
   button:active { transform: scale(.96); }
-  button.ghost { background: #e3e9f1; color: var(--brand-dark); }
-  button.ghost:hover { background: #d2dcea; }
-  button:disabled { opacity: .4; cursor: not-allowed; }
-  button.icon { padding: 12px 16px; font-size: 1.2rem; }
-  .info { font-size: .9rem; color: #5b6b7d; margin-top: 10px; }
+  .btn-primary {
+    background: linear-gradient(135deg, var(--brand), var(--brand-2));
+    color: #fff; box-shadow: 0 8px 20px -8px rgba(31,78,140,.7);
+  }
+  .btn-primary:hover { filter: brightness(1.07); }
+  .btn-ghost { background: #eef2f8; color: var(--brand); }
+  .btn-ghost:hover { background: #e2e9f3; }
+  .btn-accent {
+    background: linear-gradient(135deg, var(--accent), var(--accent-d));
+    color: #3a2a05; box-shadow: 0 8px 20px -8px rgba(244,167,44,.7);
+  }
+  .btn-accent:hover { filter: brightness(1.05); }
+  button:disabled { opacity: .38; cursor: not-allowed; transform: none; }
+  .btn-icon { padding: 12px 16px; font-size: 1.15rem; }
+  .hint { font-size: .86rem; color: var(--muted); margin-top: 12px; }
+  .hint b { color: var(--brand); font-weight: 700; }
 
   /* ===== المشغّل ===== */
   #player { display: none; }
   .stage {
-    background: #000;
-    border-radius: 14px;
-    height: 360px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    overflow: hidden;
+    position: relative; overflow: hidden;
+    border-radius: 16px;
+    height: 380px;
+    background:
+      radial-gradient(circle at 50% 38%, #20364f 0%, #0c1422 78%);
+    display: grid; place-items: center;
+    box-shadow: inset 0 0 60px rgba(0,0,0,.55);
+  }
+  .stage::after {
+    content: ""; position: absolute; inset: 0;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.05);
+    border-radius: 16px; pointer-events: none;
   }
   .stage img {
-    max-width: 100%;
-    max-height: 100%;
+    max-width: 86%; max-height: 78%;
     object-fit: contain;
-    transition: opacity .18s ease, transform .18s ease;
+    filter: drop-shadow(0 14px 26px rgba(0,0,0,.55));
+    transition: opacity .16s ease, transform .16s ease;
   }
-  .stage.swap img { opacity: 0; transform: scale(.92); }
+  .stage.swap img { opacity: 0; transform: scale(.9); }
   .stage .ph {
-    font-size: 7rem; color: var(--miss);
-    background: var(--miss-bg);
-    width: 100%; height: 100%;
-    display: flex; align-items: center; justify-content: center;
+    width: 64%; aspect-ratio: 1;
+    display: grid; place-items: center;
+    font-size: 6rem; font-weight: 800;
+    color: var(--miss); background: var(--miss-bg);
+    border-radius: 18px;
   }
   .stage-label {
-    position: absolute;
-    bottom: 0; left: 0; right: 0;
-    background: var(--brand);
+    position: absolute; bottom: 0; left: 0; right: 0;
+    padding: 14px;
+    text-align: center; font-size: 1.7rem; font-weight: 700;
     color: #fff;
-    text-align: center;
-    padding: 12px;
-    font-size: 1.8rem;
+    background: linear-gradient(135deg, var(--brand), var(--brand-2));
   }
-  .progress-bar {
-    height: 8px;
-    background: #d4dce6;
-    border-radius: 4px;
-    overflow: hidden;
-    margin: 14px 0 8px;
+  .progress-track {
+    height: 9px; background: #e7ecf3;
+    border-radius: 99px; overflow: hidden;
+    margin: 16px 0 8px;
   }
   .progress-fill {
-    height: 100%;
-    background: var(--brand);
-    width: 0%;
+    height: 100%; width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-d));
+    border-radius: 99px;
     transition: width .15s ease;
   }
-  .progress-text { text-align: center; color: #5b6b7d; font-size: .9rem; }
-  .speed { display: flex; align-items: center; gap: 8px; margin-right: auto; }
-  .speed input { cursor: pointer; }
+  .progress-text {
+    text-align: center; color: var(--muted);
+    font-size: .9rem; font-weight: 500;
+  }
+  .controls {
+    display: flex; gap: 9px; flex-wrap: wrap;
+    align-items: center; margin-top: 14px;
+  }
+  .speed {
+    display: flex; align-items: center; gap: 9px;
+    margin-right: auto;
+    background: #f2f5f9; padding: 8px 14px; border-radius: 99px;
+  }
+  .speed input { cursor: pointer; accent-color: var(--brand); width: 120px; }
+  .speed span { font-size: 1.05rem; }
 
-  /* ===== شريط المصغّرات ===== */
+  /* ===== المصغّرات ===== */
   .thumbs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    direction: rtl;
-    margin-top: 18px;
+    display: flex; flex-wrap: wrap; gap: 9px;
+    direction: rtl; margin-top: 20px;
   }
   .thumb {
-    width: 64px;
-    border-radius: 8px;
-    overflow: hidden;
-    cursor: pointer;
-    border: 3px solid transparent;
-    background: #000;
+    width: 68px; border-radius: 12px; overflow: hidden;
+    cursor: pointer; background: #0c1422;
+    border: 2px solid transparent;
+    box-shadow: var(--shadow-sm);
     transition: border-color .15s, transform .15s;
   }
-  .thumb:hover { transform: translateY(-2px); }
-  .thumb.active { border-color: var(--brand); }
-  .thumb img { width: 100%; height: 64px; object-fit: contain; display: block; }
+  .thumb:hover { transform: translateY(-3px); }
+  .thumb.active {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(244,167,44,.3);
+  }
+  .thumb img { width: 100%; height: 66px; object-fit: contain; display: block; }
   .thumb .tl {
-    background: var(--brand); color: #fff;
-    text-align: center; font-size: .85rem; padding: 2px;
+    background: linear-gradient(135deg, var(--brand), var(--brand-2));
+    color: #fff; text-align: center; font-size: .85rem;
+    font-weight: 700; padding: 3px;
   }
   .thumb.missing img, .thumb.missing .tph {
-    background: var(--miss-bg); height: 64px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.6rem; color: var(--miss);
+    background: var(--miss-bg); height: 66px;
+    display: grid; place-items: center;
+    font-size: 1.6rem; font-weight: 800; color: var(--miss);
   }
   .thumb.missing .tl { background: var(--miss); }
 
   .warn {
-    background: #fff7e6;
-    border: 1px solid #ffd98a;
-    border-radius: 8px;
-    padding: 10px 14px;
-    margin-top: 14px;
-    font-size: .9rem;
-    color: #8a5a00;
+    background: #fff7e6; border: 1px solid #ffdf9e;
+    border-radius: 12px; padding: 11px 15px;
+    margin-top: 16px; font-size: .9rem; color: #946100;
   }
+  .empty {
+    text-align: center; color: var(--muted);
+    padding: 44px 16px;
+  }
+  .empty .big { font-size: 2.6rem; display: block; margin-bottom: 6px; opacity: .55; }
 
   /* ===== بنك المفردات ===== */
-  details.cat {
-    border: 1px solid #d4dce6;
-    border-radius: 10px;
-    margin-bottom: 10px;
-    overflow: hidden;
+  .vsearch {
+    width: 100%; font-family: inherit; font-size: 1rem;
+    padding: 12px 16px; border: 2px solid var(--line);
+    border-radius: 12px; margin-bottom: 16px; background: #fafbfd;
   }
+  .vsearch:focus {
+    outline: none; border-color: var(--brand-2);
+    box-shadow: 0 0 0 4px rgba(47,109,176,.12);
+  }
+  details.cat {
+    border: 1px solid var(--line);
+    border-radius: 14px; margin-bottom: 12px;
+    overflow: hidden; background: #fff;
+    transition: box-shadow .15s;
+  }
+  details.cat[open] { box-shadow: var(--shadow-sm); }
   details.cat summary {
-    background: #f3f6fa;
-    padding: 12px 16px;
-    cursor: pointer;
-    font-weight: bold;
-    color: var(--brand-dark);
-    list-style: none;
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 18px; cursor: pointer;
+    font-weight: 700; list-style: none;
+    background: linear-gradient(135deg, #f6f9fc, #eef3f9);
   }
   details.cat summary::-webkit-details-marker { display: none; }
-  details.cat summary::before { content: "▸ "; }
-  details.cat[open] summary::before { content: "▾ "; }
-  details.cat summary .count { color: #8493a5; font-weight: normal; font-size: .85rem; }
-  .chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px; }
-  .chip {
-    background: #e8eef6;
-    color: var(--brand-dark);
-    border: 1px solid #cdd9e6;
-    border-radius: 20px;
-    padding: 7px 14px;
-    font-size: .95rem;
-    cursor: pointer;
-    transition: background .12s, transform .1s;
+  details.cat summary .cic {
+    width: 36px; height: 36px; flex: none;
+    display: grid; place-items: center;
+    background: #fff; border: 1px solid var(--line);
+    border-radius: 10px; font-size: 1.1rem;
   }
-  .chip:hover { background: var(--brand); color: #fff; }
-  .chip:active { transform: scale(.95); }
+  details.cat summary .ctxt { flex: 1; }
+  details.cat summary .count {
+    background: var(--brand); color: #fff;
+    font-size: .78rem; font-weight: 700;
+    padding: 2px 10px; border-radius: 99px;
+  }
+  details.cat summary .arrow {
+    color: var(--muted); transition: transform .2s;
+  }
+  details.cat[open] summary .arrow { transform: rotate(90deg); }
+  .chips { display: flex; flex-wrap: wrap; gap: 9px; padding: 16px; }
+  .chip {
+    background: #eef3f9; color: var(--brand);
+    border: 1px solid var(--line);
+    border-radius: 99px; padding: 8px 16px;
+    font-size: .96rem; font-weight: 500;
+    font-family: inherit; cursor: pointer;
+    transition: background .12s, color .12s, transform .1s, box-shadow .12s;
+  }
+  .chip:hover {
+    background: linear-gradient(135deg, var(--brand), var(--brand-2));
+    color: #fff; transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+  }
+  .chip:active { transform: scale(.94); }
+  .no-result { padding: 14px; color: var(--muted); font-size: .92rem; }
 
   /* ===== معلومات البرنامج ===== */
-  .prog dl { margin: 0; }
-  .prog dt { font-weight: bold; color: var(--brand-dark); margin-top: 12px; }
-  .prog dd { margin: 4px 0 0; }
-  .prog ul { margin: 6px 0 0; padding-inline-start: 22px; }
-  .prog li { margin: 4px 0; }
+  .prog dl { margin: 0; display: grid; gap: 2px; }
+  .prog .pair {
+    display: flex; gap: 10px; padding: 10px 0;
+    border-bottom: 1px dashed var(--line);
+  }
+  .prog .pair:last-child { border-bottom: none; }
+  .prog dt { font-weight: 700; color: var(--brand); min-width: 140px; flex: none; }
+  .prog dd { margin: 0; }
+  .prog ul { margin: 0; padding-inline-start: 20px; }
+  .prog ul li { margin: 6px 0; }
 
-  footer { text-align: center; color: #8493a5; font-size: .82rem; padding: 20px; }
-  .empty { color: #8493a5; text-align: center; padding: 30px; }
+  footer {
+    text-align: center; color: var(--muted);
+    font-size: .84rem; padding: 10px 20px 40px;
+  }
+  footer a { color: var(--brand); text-decoration: none; font-weight: 700; }
+
+  @media (max-width: 560px) {
+    .hero h1 { font-size: 1.6rem; }
+    .card { padding: 20px; }
+    .stage { height: 300px; }
+    .speed { margin-right: 0; width: 100%; justify-content: center; }
+    .prog .pair { flex-direction: column; gap: 2px; }
+  }
 </style>
 </head>
 <body>
+
 <header>
-  <h1>🤟 أداة خالد لترجمة لغة الإشارة</h1>
-  <p>ترجمة النصوص العربية إلى لغة الإشارة العربية — لغة الإشارة الكويتية للبنوك</p>
+  <div class="hero">
+    <span class="badge">🤟 لغة الإشارة الكويتية للبنوك</span>
+    <h1><span class="wave">👋</span> أداة خالد لترجمة لغة الإشارة</h1>
+    <p>حوّل النصوص العربية إلى لغة الإشارة العربية بعرضٍ متحرك وسلس — مباشرةً في متصفحك.</p>
+  </div>
+  <div class="wave-divider" aria-hidden="true">
+    <svg viewBox="0 0 1440 46" preserveAspectRatio="none">
+      <path d="M0,46 L0,20 C240,46 480,0 720,14 C960,28 1200,46 1440,12 L1440,46 Z" fill="#eef3f9"/>
+    </svg>
+  </div>
 </header>
 
 <main>
+  <!-- الإدخال -->
   <div class="card">
-    <textarea id="input" placeholder="اكتب النص العربي هنا..." autofocus></textarea>
-    <div class="row">
-      <button onclick="translateText()">ترجم إلى لغة الإشارة</button>
-      <button class="ghost" onclick="clearAll()">مسح</button>
+    <div class="card-head">
+      <div class="ic">✍️</div>
+      <div>
+        <h2>اكتب النص</h2>
+        <p>أدخل أي نص عربي وسيُترجَم حرفاً بحرف</p>
+      </div>
     </div>
-    <div class="info">يدعم: تهجئة الحروف بالأصابع · إشارتا «ال» و«لا» · حذف التشكيل تلقائياً</div>
+    <textarea id="input" placeholder="مثال:  مرحبا بك في البنك" autofocus></textarea>
+    <div class="row">
+      <button class="btn-primary" onclick="translateText()">🎬 ترجم إلى لغة الإشارة</button>
+      <button class="btn-ghost" onclick="clearAll()">مسح</button>
+    </div>
+    <div class="hint">يدعم: <b>تهجئة الحروف بالأصابع</b> · إشارتَي «ال» و«لا» · حذف التشكيل تلقائياً</div>
   </div>
 
+  <!-- المشغّل -->
   <div class="card">
-    <div id="placeholder" class="empty">النتيجة المتحركة ستظهر هنا بعد الترجمة.</div>
+    <div class="card-head">
+      <div class="ic">🎞️</div>
+      <div>
+        <h2>العرض المتحرك</h2>
+        <p>تُعرض إشارات الحروف واحدةً تلو الأخرى</p>
+      </div>
+    </div>
+
+    <div id="placeholder" class="empty">
+      <span class="big">🖐️</span>
+      النتيجة المتحركة ستظهر هنا بعد الترجمة.
+    </div>
 
     <div id="player">
       <div class="stage" id="stage">
@@ -229,18 +390,18 @@
         <div class="stage-label" id="stageLabel"></div>
       </div>
 
-      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
       <div class="progress-text" id="progressText"></div>
 
-      <div class="row">
-        <button class="icon" id="btnPrev" onclick="step(-1)" title="السابق">⏮</button>
-        <button class="icon" id="btnPlay" onclick="togglePlay()" title="تشغيل">▶️ تشغيل</button>
-        <button class="icon" id="btnNext" onclick="step(1)" title="التالي">⏭</button>
-        <button class="icon ghost" onclick="replay()" title="إعادة">🔄</button>
+      <div class="controls">
+        <button class="btn-ghost btn-icon" id="btnPrev" onclick="step(-1)" title="السابق">⏮</button>
+        <button class="btn-accent btn-icon" id="btnPlay" onclick="togglePlay()">▶️ تشغيل</button>
+        <button class="btn-ghost btn-icon" id="btnNext" onclick="step(1)" title="التالي">⏭</button>
+        <button class="btn-ghost btn-icon" onclick="replay()" title="إعادة">🔄</button>
         <label class="speed">
-          🐢
+          <span>🐢</span>
           <input type="range" id="speed" min="200" max="1500" step="100" value="550">
-          🐇
+          <span>🐇</span>
         </label>
       </div>
 
@@ -249,42 +410,47 @@
     </div>
   </div>
 
-  <!-- ===== بنك المفردات ===== -->
+  <!-- بنك المفردات -->
   <div class="card">
-    <h2 class="sec">📚 بنك المفردات — لغة الإشارة الكويتية للبنوك</h2>
-    <div class="info" style="margin-bottom:14px">اضغط أي كلمة لترجمتها فوراً إلى لغة الإشارة.</div>
+    <div class="card-head">
+      <div class="ic">📚</div>
+      <div>
+        <h2>بنك المفردات</h2>
+        <p>مفردات لغة الإشارة الكويتية للبنوك — اضغط أي كلمة لترجمتها</p>
+      </div>
+    </div>
+    <input class="vsearch" id="vsearch" type="search" placeholder="🔍 ابحث عن كلمة...">
     <div id="vocab"></div>
+    <div id="vocabEmpty" class="no-result" style="display:none">لا توجد نتائج مطابقة.</div>
   </div>
 
-  <!-- ===== معلومات البرنامج ===== -->
+  <!-- معلومات البرنامج -->
   <div class="card prog">
-    <h2 class="sec">ℹ️ عن البرنامج التدريبي</h2>
+    <div class="card-head">
+      <div class="ic">ℹ️</div>
+      <div>
+        <h2>عن البرنامج التدريبي</h2>
+        <p>برنامج لغة الإشارة الكويتية لموظفي مصارف البنوك</p>
+      </div>
+    </div>
     <details class="cat">
-      <summary>تفاصيل الدورة التخصصية</summary>
-      <div style="padding:14px">
+      <summary><span class="cic">🎓</span><span class="ctxt">تفاصيل الدورة التخصصية</span><span class="arrow">▸</span></summary>
+      <div style="padding:8px 18px 18px">
         <dl>
-          <dt>اسم البرنامج</dt>
-          <dd>الدورة التخصصية لبرنامج لغة الإشارة الكويتية — لموظفي مصارف البنوك — المستوى الأول التأسيسي</dd>
-          <dt>إعداد وتدريب</dt>
-          <dd>د. محمد خلف الرمزي — رئيس الجمعية الكويتية لمترجمي لغة الإشارة</dd>
-          <dt>الجهة</dt>
-          <dd>معهد الدراسات المصرفية</dd>
-          <dt>التاريخ</dt>
-          <dd>21 – 24 سبتمبر 2025</dd>
-          <dt>المدة</dt>
-          <dd>أربعة أيام — 20 ساعة تدريبية (8:00 صباحاً – 2:00 مساءً)</dd>
-          <dt>لغة البرنامج</dt>
-          <dd>العربية</dd>
-          <dt>الفئة المستهدفة</dt>
-          <dd>موظفو البنك الذين لديهم اتصال مباشر مع العملاء</dd>
-          <dt>رسوم الاشتراك</dt>
-          <dd>20 ديناراً كويتياً للمتدرب الواحد</dd>
+          <div class="pair"><dt>اسم البرنامج</dt><dd>الدورة التخصصية لبرنامج لغة الإشارة الكويتية — لموظفي مصارف البنوك — المستوى الأول التأسيسي</dd></div>
+          <div class="pair"><dt>إعداد وتدريب</dt><dd>د. محمد خلف الرمزي — رئيس الجمعية الكويتية لمترجمي لغة الإشارة</dd></div>
+          <div class="pair"><dt>الجهة</dt><dd>معهد الدراسات المصرفية</dd></div>
+          <div class="pair"><dt>التاريخ</dt><dd>21 – 24 سبتمبر 2025</dd></div>
+          <div class="pair"><dt>المدة</dt><dd>أربعة أيام — 20 ساعة تدريبية (8:00 صباحاً – 2:00 مساءً)</dd></div>
+          <div class="pair"><dt>لغة البرنامج</dt><dd>العربية</dd></div>
+          <div class="pair"><dt>الفئة المستهدفة</dt><dd>موظفو البنك الذين لديهم اتصال مباشر مع العملاء</dd></div>
+          <div class="pair"><dt>رسوم الاشتراك</dt><dd>20 ديناراً كويتياً للمتدرب الواحد</dd></div>
         </dl>
       </div>
     </details>
     <details class="cat">
-      <summary>أهداف البرنامج</summary>
-      <div style="padding:14px">
+      <summary><span class="cic">🎯</span><span class="ctxt">أهداف البرنامج</span><span class="arrow">▸</span></summary>
+      <div style="padding:8px 18px 18px">
         <ul>
           <li>توعية المتدربين بسيكولوجية وثقافة ذوي الإعاقة السمعية وكيفية التواصل معهم.</li>
           <li>تعريف الإعاقة السمعية ولغة الإشارة.</li>
@@ -295,8 +461,8 @@
       </div>
     </details>
     <details class="cat">
-      <summary>المحتوى العام للبرنامج</summary>
-      <div style="padding:14px">
+      <summary><span class="cic">📋</span><span class="ctxt">المحتوى العام للبرنامج</span><span class="arrow">▸</span></summary>
+      <div style="padding:8px 18px 18px">
         <ul>
           <li>تعريف بسيكولوجية الإعاقة السمعية وأسبابها.</li>
           <li>تاريخ تطور لغة الإشارة وأهم طرق التواصل مع الأصم.</li>
@@ -315,7 +481,9 @@
   </div>
 </main>
 
-<footer>أداة خالد لترجمة لغة الإشارة — تعمل بالكامل داخل متصفحك</footer>
+<footer>
+  صُمّمت بعناية · أداة خالد لترجمة لغة الإشارة — تعمل بالكامل داخل متصفحك
+</footer>
 
 <script>
 // ===== خريطة الحروف ← أسماء ملفات الصور =====
@@ -331,52 +499,43 @@ const NORMALIZE = { "أ":"ا","إ":"ا","آ":"ا","ٱ":"ا","ؤ":"و","ئ":"ي",
 const TASHKEEL = /[ً-ْٰـ]/g;
 const WORD_START_ONLY = ["ال"];
 
-// ===== بنك المفردات (من مادة لغة الإشارة الكويتية للبنوك) =====
+// ===== بنك المفردات =====
 const VOCAB = {
-  "عبارات استقبال العميل": [
+  "عبارات استقبال العميل": { icon:"👋", words:[
     "السلام عليكم","وعليكم السلام","أهلا وسهلا","تفضل بالجلوس","كيف حالك",
     "كيف الصحة","ما اسمك","كم عمرك","هل انت متزوج","كيف يمكن ان اساعدك",
-    "لو سمحت تحدث ببطء","لو سمحت اعطني البطاقة المدنية"
-  ],
-  "أسئلة وأجوبة شائعة": [
+    "لو سمحت تحدث ببطء","لو سمحت اعطني البطاقة المدنية" ] },
+  "أسئلة وأجوبة شائعة": { icon:"💬", words:[
     "صباح الخير","مساء الخير","كيف الحال","كيف حال اسرتك","لو سمحت ساعدني",
     "بماذا اخدمك","ما اسم البنك","ارجو ان تتكلم ببطء","لم ينزل الراتب",
-    "هل تريد قرضا","اريد منك ان توقع هنا","هل تريد خدمة اخرى","شكرا","عفوا"
-  ],
-  "أفراد الأسرة": [
+    "هل تريد قرضا","اريد منك ان توقع هنا","هل تريد خدمة اخرى","شكرا","عفوا" ] },
+  "أفراد الأسرة": { icon:"👨‍👩‍👧", words:[
     "اسرة","اب","ام","اخ","اخت","الابناء","الجد","الجدة","بنت","طفل",
-    "رجل","امراة","امراة مسنة","رجل مسن","الخادم","مترجم لغة الاشارة"
-  ],
-  "أيام الأسبوع والوقت": [
+    "رجل","امراة","امراة مسنة","رجل مسن","الخادم","مترجم لغة الاشارة" ] },
+  "أيام الأسبوع والوقت": { icon:"📅", words:[
     "اسبوع","السبت","الاحد","الاثنين","الثلاثاء","الاربعاء","الخميس","الجمعة",
-    "يوم","شهر","سنة","صباح","مساء","الظهر","العصر","اليوم","امس","غدا","متى","اين"
-  ],
-  "الألوان": [
-    "ابيض","احمر","اخضر","ازرق","اسود","اصفر","برتقالي","بني","فضي","ذهبي","عنابي"
-  ],
-  "الحسابات والبطاقات": [
+    "يوم","شهر","سنة","صباح","مساء","الظهر","العصر","اليوم","امس","غدا","متى","اين" ] },
+  "الألوان": { icon:"🎨", words:[
+    "ابيض","احمر","اخضر","ازرق","اسود","اصفر","برتقالي","بني","فضي","ذهبي","عنابي" ] },
+  "الحسابات والبطاقات": { icon:"💳", words:[
     "بطاقة البنك","بطاقة الطالب","بطاقة الفيزا","بطاقة الماستر كارد",
     "البطاقة الماسية","البطاقة الذهبية","البطاقة الفضية","نقطة بيع",
-    "حساب التوفير","الحساب الجاري"
-  ],
-  "البنوك المحلية الكويتية": [
+    "حساب التوفير","الحساب الجاري" ] },
+  "البنوك المحلية الكويتية": { icon:"🏦", words:[
     "البنك الاهلي الكويتي","اتحاد البنوك","البنك التجاري الكويتي","بنك التسليف",
     "بنك الخليج","بنك الكويت الدولي","البنك الصناعي","بنك الكويت الوطني",
     "البنك المركزي الكويتي","بنك برقان","بنك بوبيان","بنك وربة",
-    "بيت التمويل الكويتي","البورصة"
-  ],
-  "الأوراق والمستندات الرسمية": [
+    "بيت التمويل الكويتي","البورصة" ] },
+  "الأوراق والمستندات الرسمية": { icon:"📄", words:[
     "بصمة","البطاقة المدنية","براءة ذمة","توقيع","جواز السفر","حكم المحكمة",
     "ختم","شهادة","شهادة راتب","شهادة عمل","شهادة الاعاقة","شهادة حصر الورثة",
-    "شهادة لمن يهمه الامر","هوية","وثيقة زواج","وثيقة طلاق"
-  ],
-  "مفردات مصرفية متفرقة": [
+    "شهادة لمن يهمه الامر","هوية","وثيقة زواج","وثيقة طلاق" ] },
+  "مفردات مصرفية متفرقة": { icon:"🧾", words:[
     "اريد","لا اريد","اضافة","انتظر","اوراق","الاول","الاخير","ايصال",
     "بطاقة السحب الالي","تاكد","توزيع","خصم","شيك","قانون","قديم","جديد",
     "كفيل","لا يوجد","مرفوض","مساعدة","سؤال","جواب","ممنوع","مهم","موافق",
     "نعم","لا","واسطة","الوصي","اقتطاع","اقساط","ممزق","ايقاف","تحويل",
-    "تحويل الراتب","تغيير الاسم","حساب البنك","وديعة","رقم الايبان"
-  ]
+    "تحويل الراتب","تغيير الاسم","حساب البنك","وديعة","رقم الايبان" ] }
 };
 
 let sequence = [];
@@ -425,7 +584,7 @@ function translateText() {
   if (!raw) {
     player.style.display = "none";
     placeholder.style.display = "block";
-    placeholder.textContent = "الرجاء إدخال نص أولاً.";
+    placeholder.innerHTML = '<span class="big">✏️</span>الرجاء إدخال نص أولاً.';
     return;
   }
 
@@ -439,7 +598,7 @@ function translateText() {
   if (letterCount === 0) {
     player.style.display = "none";
     placeholder.style.display = "block";
-    placeholder.textContent = "لا يوجد نص عربي قابل للترجمة.";
+    placeholder.innerHTML = '<span class="big">🚫</span>لا يوجد نص عربي قابل للترجمة.';
     return;
   }
 
@@ -450,7 +609,7 @@ function translateText() {
   current = 0;
   showFrame(0);
 
-  let msg = `عدد الحروف: ${letterCount}`;
+  let msg = `✅ عدد الحروف: ${letterCount}`;
   if (unknown.size) msg += ` — رموز غير معروفة (تُتخطّى): ${[...unknown].join(" ")}`;
   warnings.innerHTML = `<div class="warn">${msg}</div>`;
 }
@@ -510,7 +669,7 @@ function showFrame(idx) {
         }
       };
       label.textContent = t.value;
-      label.style.background = "var(--brand)";
+      label.style.background = "linear-gradient(135deg,var(--brand),var(--brand-2))";
     } else if (t.kind === "space") {
       img.style.display = "none";
       label.textContent = "⎵ مسافة";
@@ -589,22 +748,30 @@ function clearAll() {
   document.getElementById("player").style.display = "none";
   const ph = document.getElementById("placeholder");
   ph.style.display = "block";
-  ph.textContent = "النتيجة المتحركة ستظهر هنا بعد الترجمة.";
+  ph.innerHTML = '<span class="big">🖐️</span>النتيجة المتحركة ستظهر هنا بعد الترجمة.';
   document.getElementById("input").focus();
 }
 
 // ===== بناء بنك المفردات =====
 function buildVocab() {
   const box = document.getElementById("vocab");
-  for (const [cat, words] of Object.entries(VOCAB)) {
+  box.innerHTML = "";
+  for (const [cat, data] of Object.entries(VOCAB)) {
     const det = document.createElement("details");
     det.className = "cat";
+    det.dataset.cat = cat;
+
     const sum = document.createElement("summary");
-    sum.innerHTML = `${cat} <span class="count">(${words.length})</span>`;
+    sum.innerHTML =
+      `<span class="cic">${data.icon}</span>` +
+      `<span class="ctxt">${cat}</span>` +
+      `<span class="count">${data.words.length}</span>` +
+      `<span class="arrow">▸</span>`;
     det.appendChild(sum);
+
     const chips = document.createElement("div");
     chips.className = "chips";
-    words.forEach(w => {
+    data.words.forEach(w => {
       const chip = document.createElement("span");
       chip.className = "chip";
       chip.textContent = w;
@@ -620,6 +787,24 @@ function buildVocab() {
   }
 }
 buildVocab();
+
+// ===== بحث المفردات =====
+document.getElementById("vsearch").addEventListener("input", e => {
+  const q = e.target.value.trim();
+  let anyVisible = false;
+  document.querySelectorAll("#vocab details.cat").forEach(det => {
+    let catHit = false;
+    det.querySelectorAll(".chip").forEach(chip => {
+      const hit = !q || chip.textContent.includes(q);
+      chip.style.display = hit ? "" : "none";
+      if (hit) catHit = true;
+    });
+    det.style.display = catHit ? "" : "none";
+    if (catHit) anyVisible = true;
+    det.open = q && catHit;
+  });
+  document.getElementById("vocabEmpty").style.display = anyVisible ? "none" : "block";
+});
 
 document.getElementById("input").addEventListener("keydown", e => {
   if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) translateText();
