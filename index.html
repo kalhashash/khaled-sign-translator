@@ -36,6 +36,7 @@
     box-shadow: 0 4px 18px rgba(0,0,0,.07);
     margin-bottom: 22px;
   }
+  h2.sec { margin: 0 0 14px; font-size: 1.2rem; color: var(--brand-dark); }
   textarea {
     width: 100%;
     min-height: 90px;
@@ -83,7 +84,7 @@
     max-width: 100%;
     max-height: 100%;
     object-fit: contain;
-    transition: opacity .25s ease, transform .25s ease;
+    transition: opacity .18s ease, transform .18s ease;
   }
   .stage.swap img { opacity: 0; transform: scale(.92); }
   .stage .ph {
@@ -112,7 +113,7 @@
     height: 100%;
     background: var(--brand);
     width: 0%;
-    transition: width .2s ease;
+    transition: width .15s ease;
   }
   .progress-text { text-align: center; color: #5b6b7d; font-size: .9rem; }
   .speed { display: flex; align-items: center; gap: 8px; margin-right: auto; }
@@ -158,6 +159,47 @@
     font-size: .9rem;
     color: #8a5a00;
   }
+
+  /* ===== بنك المفردات ===== */
+  details.cat {
+    border: 1px solid #d4dce6;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    overflow: hidden;
+  }
+  details.cat summary {
+    background: #f3f6fa;
+    padding: 12px 16px;
+    cursor: pointer;
+    font-weight: bold;
+    color: var(--brand-dark);
+    list-style: none;
+  }
+  details.cat summary::-webkit-details-marker { display: none; }
+  details.cat summary::before { content: "▸ "; }
+  details.cat[open] summary::before { content: "▾ "; }
+  details.cat summary .count { color: #8493a5; font-weight: normal; font-size: .85rem; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; padding: 14px; }
+  .chip {
+    background: #e8eef6;
+    color: var(--brand-dark);
+    border: 1px solid #cdd9e6;
+    border-radius: 20px;
+    padding: 7px 14px;
+    font-size: .95rem;
+    cursor: pointer;
+    transition: background .12s, transform .1s;
+  }
+  .chip:hover { background: var(--brand); color: #fff; }
+  .chip:active { transform: scale(.95); }
+
+  /* ===== معلومات البرنامج ===== */
+  .prog dl { margin: 0; }
+  .prog dt { font-weight: bold; color: var(--brand-dark); margin-top: 12px; }
+  .prog dd { margin: 4px 0 0; }
+  .prog ul { margin: 6px 0 0; padding-inline-start: 22px; }
+  .prog li { margin: 4px 0; }
+
   footer { text-align: center; color: #8493a5; font-size: .82rem; padding: 20px; }
   .empty { color: #8493a5; text-align: center; padding: 30px; }
 </style>
@@ -165,7 +207,7 @@
 <body>
 <header>
   <h1>🤟 أداة خالد لترجمة لغة الإشارة</h1>
-  <p>ترجمة النصوص العربية إلى لغة الإشارة العربية (ArSL) — عرض متحرك</p>
+  <p>ترجمة النصوص العربية إلى لغة الإشارة العربية — لغة الإشارة الكويتية للبنوك</p>
 </header>
 
 <main>
@@ -197,7 +239,7 @@
         <button class="icon ghost" onclick="replay()" title="إعادة">🔄</button>
         <label class="speed">
           🐢
-          <input type="range" id="speed" min="300" max="2000" step="100" value="900">
+          <input type="range" id="speed" min="200" max="1500" step="100" value="550">
           🐇
         </label>
       </div>
@@ -205,6 +247,71 @@
       <div class="thumbs" id="thumbs"></div>
       <div id="warnings"></div>
     </div>
+  </div>
+
+  <!-- ===== بنك المفردات ===== -->
+  <div class="card">
+    <h2 class="sec">📚 بنك المفردات — لغة الإشارة الكويتية للبنوك</h2>
+    <div class="info" style="margin-bottom:14px">اضغط أي كلمة لترجمتها فوراً إلى لغة الإشارة.</div>
+    <div id="vocab"></div>
+  </div>
+
+  <!-- ===== معلومات البرنامج ===== -->
+  <div class="card prog">
+    <h2 class="sec">ℹ️ عن البرنامج التدريبي</h2>
+    <details class="cat">
+      <summary>تفاصيل الدورة التخصصية</summary>
+      <div style="padding:14px">
+        <dl>
+          <dt>اسم البرنامج</dt>
+          <dd>الدورة التخصصية لبرنامج لغة الإشارة الكويتية — لموظفي مصارف البنوك — المستوى الأول التأسيسي</dd>
+          <dt>إعداد وتدريب</dt>
+          <dd>د. محمد خلف الرمزي — رئيس الجمعية الكويتية لمترجمي لغة الإشارة</dd>
+          <dt>الجهة</dt>
+          <dd>معهد الدراسات المصرفية</dd>
+          <dt>التاريخ</dt>
+          <dd>21 – 24 سبتمبر 2025</dd>
+          <dt>المدة</dt>
+          <dd>أربعة أيام — 20 ساعة تدريبية (8:00 صباحاً – 2:00 مساءً)</dd>
+          <dt>لغة البرنامج</dt>
+          <dd>العربية</dd>
+          <dt>الفئة المستهدفة</dt>
+          <dd>موظفو البنك الذين لديهم اتصال مباشر مع العملاء</dd>
+          <dt>رسوم الاشتراك</dt>
+          <dd>20 ديناراً كويتياً للمتدرب الواحد</dd>
+        </dl>
+      </div>
+    </details>
+    <details class="cat">
+      <summary>أهداف البرنامج</summary>
+      <div style="padding:14px">
+        <ul>
+          <li>توعية المتدربين بسيكولوجية وثقافة ذوي الإعاقة السمعية وكيفية التواصل معهم.</li>
+          <li>تعريف الإعاقة السمعية ولغة الإشارة.</li>
+          <li>تنمية المتدربين نحو أهم طرق التواصل مع العملاء الصم.</li>
+          <li>تأهيل وتدريب المتدربين على التواصل والتحدث بلغة الإشارة.</li>
+          <li>إكساب المتدربين القدرة على أداء وإتقان المهارات الفنية للغة الإشارة.</li>
+        </ul>
+      </div>
+    </details>
+    <details class="cat">
+      <summary>المحتوى العام للبرنامج</summary>
+      <div style="padding:14px">
+        <ul>
+          <li>تعريف بسيكولوجية الإعاقة السمعية وأسبابها.</li>
+          <li>تاريخ تطور لغة الإشارة وأهم طرق التواصل مع الأصم.</li>
+          <li>الأبجدية الإشارية والأرقام الإشارية.</li>
+          <li>أفراد الأسرة وأيام الأسبوع.</li>
+          <li>الزمن والترتيب والألوان.</li>
+          <li>التحية والاستقبال (خدمة العملاء).</li>
+          <li>الخطابات والأوراق الرسمية.</li>
+          <li>إشارات البنوك في الكويت.</li>
+          <li>الحسابات وبطاقات الائتمان.</li>
+          <li>مفردات متفرقة خاصة بمصارف البنوك.</li>
+          <li>أسئلة مختلفة يحتاجها الموظف لمخاطبة العملاء الصم.</li>
+        </ul>
+      </div>
+    </details>
   </div>
 </main>
 
@@ -224,7 +331,55 @@ const NORMALIZE = { "أ":"ا","إ":"ا","آ":"ا","ٱ":"ا","ؤ":"و","ئ":"ي",
 const TASHKEEL = /[ً-ْٰـ]/g;
 const WORD_START_ONLY = ["ال"];
 
-let sequence = [];   // عناصر الترجمة (حروف فقط، تتضمن فواصل المسافات)
+// ===== بنك المفردات (من مادة لغة الإشارة الكويتية للبنوك) =====
+const VOCAB = {
+  "عبارات استقبال العميل": [
+    "السلام عليكم","وعليكم السلام","أهلا وسهلا","تفضل بالجلوس","كيف حالك",
+    "كيف الصحة","ما اسمك","كم عمرك","هل انت متزوج","كيف يمكن ان اساعدك",
+    "لو سمحت تحدث ببطء","لو سمحت اعطني البطاقة المدنية"
+  ],
+  "أسئلة وأجوبة شائعة": [
+    "صباح الخير","مساء الخير","كيف الحال","كيف حال اسرتك","لو سمحت ساعدني",
+    "بماذا اخدمك","ما اسم البنك","ارجو ان تتكلم ببطء","لم ينزل الراتب",
+    "هل تريد قرضا","اريد منك ان توقع هنا","هل تريد خدمة اخرى","شكرا","عفوا"
+  ],
+  "أفراد الأسرة": [
+    "اسرة","اب","ام","اخ","اخت","الابناء","الجد","الجدة","بنت","طفل",
+    "رجل","امراة","امراة مسنة","رجل مسن","الخادم","مترجم لغة الاشارة"
+  ],
+  "أيام الأسبوع والوقت": [
+    "اسبوع","السبت","الاحد","الاثنين","الثلاثاء","الاربعاء","الخميس","الجمعة",
+    "يوم","شهر","سنة","صباح","مساء","الظهر","العصر","اليوم","امس","غدا","متى","اين"
+  ],
+  "الألوان": [
+    "ابيض","احمر","اخضر","ازرق","اسود","اصفر","برتقالي","بني","فضي","ذهبي","عنابي"
+  ],
+  "الحسابات والبطاقات": [
+    "بطاقة البنك","بطاقة الطالب","بطاقة الفيزا","بطاقة الماستر كارد",
+    "البطاقة الماسية","البطاقة الذهبية","البطاقة الفضية","نقطة بيع",
+    "حساب التوفير","الحساب الجاري"
+  ],
+  "البنوك المحلية الكويتية": [
+    "البنك الاهلي الكويتي","اتحاد البنوك","البنك التجاري الكويتي","بنك التسليف",
+    "بنك الخليج","بنك الكويت الدولي","البنك الصناعي","بنك الكويت الوطني",
+    "البنك المركزي الكويتي","بنك برقان","بنك بوبيان","بنك وربة",
+    "بيت التمويل الكويتي","البورصة"
+  ],
+  "الأوراق والمستندات الرسمية": [
+    "بصمة","البطاقة المدنية","براءة ذمة","توقيع","جواز السفر","حكم المحكمة",
+    "ختم","شهادة","شهادة راتب","شهادة عمل","شهادة الاعاقة","شهادة حصر الورثة",
+    "شهادة لمن يهمه الامر","هوية","وثيقة زواج","وثيقة طلاق"
+  ],
+  "مفردات مصرفية متفرقة": [
+    "اريد","لا اريد","اضافة","انتظر","اوراق","الاول","الاخير","ايصال",
+    "بطاقة السحب الالي","تاكد","توزيع","خصم","شيك","قانون","قديم","جديد",
+    "كفيل","لا يوجد","مرفوض","مساعدة","سؤال","جواب","ممنوع","مهم","موافق",
+    "نعم","لا","واسطة","الوصي","اقتطاع","اقساط","ممزق","ايقاف","تحويل",
+    "تحويل الراتب","تغيير الاسم","حساب البنك","وديعة","رقم الايبان"
+  ]
+};
+
+let sequence = [];
 let current = 0;
 let playing = false;
 let timer = null;
@@ -275,8 +430,7 @@ function translateText() {
   }
 
   const tokens = tokenize(normalizeText(raw));
-  // التسلسل: حروف + رموز غير معروفة + مسافات (كفاصل)
-  sequence = tokens.filter(t => t.kind !== "space" ? true : true);
+  sequence = tokens.slice();
 
   const unknown = new Set();
   for (const t of tokens) if (t.kind === "unknown" && t.value.trim()) unknown.add(t.value);
@@ -339,10 +493,8 @@ function showFrame(idx) {
   const label = document.getElementById("stageLabel");
   const t = sequence[idx];
 
-  // تأثير ظهور متحرك
   stage.classList.add("swap");
   setTimeout(() => {
-    // إزالة أي عنصر "؟" سابق
     const oldPh = stage.querySelector(".ph");
     if (oldPh) oldPh.remove();
     img.style.display = "block";
@@ -374,9 +526,8 @@ function showFrame(idx) {
       label.style.background = "var(--miss)";
     }
     stage.classList.remove("swap");
-  }, 200);
+  }, 130);
 
-  // تحديث المؤشر والمصغّرات
   const pct = sequence.length > 1 ? (idx / (sequence.length - 1)) * 100 : 100;
   document.getElementById("progressFill").style.width = pct + "%";
   const letterPos = sequence.slice(0, idx + 1).filter(x => x.kind !== "space").length;
@@ -441,6 +592,34 @@ function clearAll() {
   ph.textContent = "النتيجة المتحركة ستظهر هنا بعد الترجمة.";
   document.getElementById("input").focus();
 }
+
+// ===== بناء بنك المفردات =====
+function buildVocab() {
+  const box = document.getElementById("vocab");
+  for (const [cat, words] of Object.entries(VOCAB)) {
+    const det = document.createElement("details");
+    det.className = "cat";
+    const sum = document.createElement("summary");
+    sum.innerHTML = `${cat} <span class="count">(${words.length})</span>`;
+    det.appendChild(sum);
+    const chips = document.createElement("div");
+    chips.className = "chips";
+    words.forEach(w => {
+      const chip = document.createElement("span");
+      chip.className = "chip";
+      chip.textContent = w;
+      chip.onclick = () => {
+        document.getElementById("input").value = w;
+        translateText();
+        document.getElementById("stage").scrollIntoView({ behavior:"smooth", block:"center" });
+      };
+      chips.appendChild(chip);
+    });
+    det.appendChild(chips);
+    box.appendChild(det);
+  }
+}
+buildVocab();
 
 document.getElementById("input").addEventListener("keydown", e => {
   if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) translateText();
