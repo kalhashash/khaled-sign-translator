@@ -47,7 +47,7 @@
     font-family: inherit;
   }
   textarea:focus { outline: none; border-color: var(--brand); }
-  .row { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+  .row { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; align-items: center; }
   button {
     background: var(--brand);
     color: #fff;
@@ -57,45 +57,98 @@
     font-size: 1rem;
     font-family: inherit;
     cursor: pointer;
-    transition: background .15s;
+    transition: background .15s, transform .1s;
   }
   button:hover { background: var(--brand-dark); }
+  button:active { transform: scale(.96); }
   button.ghost { background: #e3e9f1; color: var(--brand-dark); }
   button.ghost:hover { background: #d2dcea; }
+  button:disabled { opacity: .4; cursor: not-allowed; }
+  button.icon { padding: 12px 16px; font-size: 1.2rem; }
   .info { font-size: .9rem; color: #5b6b7d; margin-top: 10px; }
-  .signs {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 14px;
-    justify-content: flex-start;
-    direction: rtl;
-  }
-  .tile {
-    width: 130px;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,.1);
+
+  /* ===== المشغّل ===== */
+  #player { display: none; }
+  .stage {
     background: #000;
-  }
-  .tile img { width: 100%; height: 130px; object-fit: contain; display: block; }
-  .tile .lbl {
-    background: var(--brand);
-    color: #fff;
-    text-align: center;
-    padding: 8px 4px;
-    font-size: 1.1rem;
-  }
-  .tile.missing img, .tile.missing .ph {
-    background: var(--miss-bg);
-    height: 130px;
+    border-radius: 14px;
+    height: 360px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 3rem;
-    color: var(--miss);
+    position: relative;
+    overflow: hidden;
   }
-  .tile.missing .lbl { background: var(--miss); }
-  .space { width: 30px; }
+  .stage img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    transition: opacity .25s ease, transform .25s ease;
+  }
+  .stage.swap img { opacity: 0; transform: scale(.92); }
+  .stage .ph {
+    font-size: 7rem; color: var(--miss);
+    background: var(--miss-bg);
+    width: 100%; height: 100%;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .stage-label {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: var(--brand);
+    color: #fff;
+    text-align: center;
+    padding: 12px;
+    font-size: 1.8rem;
+  }
+  .progress-bar {
+    height: 8px;
+    background: #d4dce6;
+    border-radius: 4px;
+    overflow: hidden;
+    margin: 14px 0 8px;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--brand);
+    width: 0%;
+    transition: width .2s ease;
+  }
+  .progress-text { text-align: center; color: #5b6b7d; font-size: .9rem; }
+  .speed { display: flex; align-items: center; gap: 8px; margin-right: auto; }
+  .speed input { cursor: pointer; }
+
+  /* ===== شريط المصغّرات ===== */
+  .thumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    direction: rtl;
+    margin-top: 18px;
+  }
+  .thumb {
+    width: 64px;
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 3px solid transparent;
+    background: #000;
+    transition: border-color .15s, transform .15s;
+  }
+  .thumb:hover { transform: translateY(-2px); }
+  .thumb.active { border-color: var(--brand); }
+  .thumb img { width: 100%; height: 64px; object-fit: contain; display: block; }
+  .thumb .tl {
+    background: var(--brand); color: #fff;
+    text-align: center; font-size: .85rem; padding: 2px;
+  }
+  .thumb.missing img, .thumb.missing .tph {
+    background: var(--miss-bg); height: 64px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem; color: var(--miss);
+  }
+  .thumb.missing .tl { background: var(--miss); }
+
   .warn {
     background: #fff7e6;
     border: 1px solid #ffd98a;
@@ -106,13 +159,13 @@
     color: #8a5a00;
   }
   footer { text-align: center; color: #8493a5; font-size: .82rem; padding: 20px; }
-  .empty { color: #8493a5; text-align: center; padding: 20px; }
+  .empty { color: #8493a5; text-align: center; padding: 30px; }
 </style>
 </head>
 <body>
 <header>
   <h1>🤟 أداة خالد لترجمة لغة الإشارة</h1>
-  <p>ترجمة النصوص العربية إلى لغة الإشارة العربية (ArSL)</p>
+  <p>ترجمة النصوص العربية إلى لغة الإشارة العربية (ArSL) — عرض متحرك</p>
 </header>
 
 <main>
@@ -126,14 +179,36 @@
   </div>
 
   <div class="card">
-    <div id="result" class="empty">النتيجة ستظهر هنا بعد الترجمة.</div>
-    <div id="warnings"></div>
+    <div id="placeholder" class="empty">النتيجة المتحركة ستظهر هنا بعد الترجمة.</div>
+
+    <div id="player">
+      <div class="stage" id="stage">
+        <img id="stageImg" alt="">
+        <div class="stage-label" id="stageLabel"></div>
+      </div>
+
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-text" id="progressText"></div>
+
+      <div class="row">
+        <button class="icon" id="btnPrev" onclick="step(-1)" title="السابق">⏮</button>
+        <button class="icon" id="btnPlay" onclick="togglePlay()" title="تشغيل">▶️ تشغيل</button>
+        <button class="icon" id="btnNext" onclick="step(1)" title="التالي">⏭</button>
+        <button class="icon ghost" onclick="replay()" title="إعادة">🔄</button>
+        <label class="speed">
+          🐢
+          <input type="range" id="speed" min="300" max="2000" step="100" value="900">
+          🐇
+        </label>
+      </div>
+
+      <div class="thumbs" id="thumbs"></div>
+      <div id="warnings"></div>
+    </div>
   </div>
 </main>
 
-<footer>
-  أداة خالد لترجمة لغة الإشارة — تعمل بالكامل داخل متصفحك
-</footer>
+<footer>أداة خالد لترجمة لغة الإشارة — تعمل بالكامل داخل متصفحك</footer>
 
 <script>
 // ===== خريطة الحروف ← أسماء ملفات الصور =====
@@ -149,11 +224,14 @@ const NORMALIZE = { "أ":"ا","إ":"ا","آ":"ا","ٱ":"ا","ؤ":"و","ئ":"ي",
 const TASHKEEL = /[ً-ْٰـ]/g;
 const WORD_START_ONLY = ["ال"];
 
+let sequence = [];   // عناصر الترجمة (حروف فقط، تتضمن فواصل المسافات)
+let current = 0;
+let playing = false;
+let timer = null;
+
 function normalizeText(text) {
   let out = "";
-  for (const ch of text.replace(TASHKEEL, "")) {
-    out += NORMALIZE[ch] || ch;
-  }
+  for (const ch of text.replace(TASHKEEL, "")) out += NORMALIZE[ch] || ch;
   return out;
 }
 
@@ -170,9 +248,7 @@ function tokenize(text) {
       if (WORD_START_ONLY.includes(dg) && !atWordStart) continue;
       if (text.startsWith(dg, i)) {
         tokens.push({ kind:"letter", value:dg });
-        i += dg.length;
-        matched = true;
-        break;
+        i += dg.length; matched = true; break;
       }
     }
     if (matched) continue;
@@ -186,65 +262,183 @@ function tokenize(text) {
 
 function translateText() {
   const raw = document.getElementById("input").value.trim();
-  const result = document.getElementById("result");
+  const placeholder = document.getElementById("placeholder");
+  const player = document.getElementById("player");
   const warnings = document.getElementById("warnings");
   warnings.innerHTML = "";
+
   if (!raw) {
-    result.className = "empty";
-    result.textContent = "الرجاء إدخال نص أولاً.";
+    player.style.display = "none";
+    placeholder.style.display = "block";
+    placeholder.textContent = "الرجاء إدخال نص أولاً.";
     return;
   }
+
   const tokens = tokenize(normalizeText(raw));
-  result.className = "signs";
-  result.innerHTML = "";
+  // التسلسل: حروف + رموز غير معروفة + مسافات (كفاصل)
+  sequence = tokens.filter(t => t.kind !== "space" ? true : true);
 
   const unknown = new Set();
-  let letterCount = 0;
+  for (const t of tokens) if (t.kind === "unknown" && t.value.trim()) unknown.add(t.value);
+  const letterCount = tokens.filter(t => t.kind === "letter").length;
 
-  for (const t of tokens) {
-    if (t.kind === "space") {
-      const sp = document.createElement("div");
-      sp.className = "space";
-      result.appendChild(sp);
-      continue;
-    }
-    const tile = document.createElement("div");
-    tile.className = "tile";
-    if (t.kind === "letter") {
-      letterCount++;
-      const img = document.createElement("img");
-      img.src = SIGNS_PATH + LETTERS[t.value] + ".png";
-      img.alt = t.value;
-      img.onerror = () => {
-        tile.classList.add("missing");
-        img.replaceWith(Object.assign(document.createElement("div"),
-          { className:"ph", textContent:"؟" }));
-      };
-      tile.appendChild(img);
-      tile.appendChild(Object.assign(document.createElement("div"),
-        { className:"lbl", textContent:t.value }));
-    } else {
-      if (t.value.trim()) unknown.add(t.value);
-      tile.classList.add("missing");
-      tile.appendChild(Object.assign(document.createElement("div"),
-        { className:"ph", textContent: t.value.trim() || "·" }));
-      tile.appendChild(Object.assign(document.createElement("div"),
-        { className:"lbl", textContent:"غير معروف" }));
-    }
-    result.appendChild(tile);
+  if (letterCount === 0) {
+    player.style.display = "none";
+    placeholder.style.display = "block";
+    placeholder.textContent = "لا يوجد نص عربي قابل للترجمة.";
+    return;
   }
 
-  let msg = `عدد الحروف المترجمة: ${letterCount}`;
-  if (unknown.size) msg += ` — رموز غير معروفة تم تجاهلها: ${[...unknown].join(" ")}`;
+  placeholder.style.display = "none";
+  player.style.display = "block";
+
+  buildThumbs();
+  current = 0;
+  showFrame(0);
+
+  let msg = `عدد الحروف: ${letterCount}`;
+  if (unknown.size) msg += ` — رموز غير معروفة (تُتخطّى): ${[...unknown].join(" ")}`;
   warnings.innerHTML = `<div class="warn">${msg}</div>`;
 }
 
+function buildThumbs() {
+  const box = document.getElementById("thumbs");
+  box.innerHTML = "";
+  sequence.forEach((t, idx) => {
+    const th = document.createElement("div");
+    th.className = "thumb";
+    th.onclick = () => { stopPlay(); current = idx; showFrame(idx); };
+    if (t.kind === "space") {
+      th.style.cssText = "width:28px;background:transparent;cursor:default;box-shadow:none";
+      th.onclick = null;
+    } else if (t.kind === "letter") {
+      const img = document.createElement("img");
+      img.src = SIGNS_PATH + LETTERS[t.value] + ".png";
+      img.onerror = () => {
+        th.classList.add("missing");
+        img.replaceWith(Object.assign(document.createElement("div"),
+          { className:"tph", textContent:"؟" }));
+      };
+      th.appendChild(img);
+      th.appendChild(Object.assign(document.createElement("div"),
+        { className:"tl", textContent:t.value }));
+    } else {
+      th.classList.add("missing");
+      th.appendChild(Object.assign(document.createElement("div"),
+        { className:"tph", textContent:t.value.trim() || "·" }));
+      th.appendChild(Object.assign(document.createElement("div"),
+        { className:"tl", textContent:"؟" }));
+    }
+    box.appendChild(th);
+  });
+}
+
+function showFrame(idx) {
+  const stage = document.getElementById("stage");
+  const img = document.getElementById("stageImg");
+  const label = document.getElementById("stageLabel");
+  const t = sequence[idx];
+
+  // تأثير ظهور متحرك
+  stage.classList.add("swap");
+  setTimeout(() => {
+    // إزالة أي عنصر "؟" سابق
+    const oldPh = stage.querySelector(".ph");
+    if (oldPh) oldPh.remove();
+    img.style.display = "block";
+
+    if (t.kind === "letter") {
+      img.src = SIGNS_PATH + LETTERS[t.value] + ".png";
+      img.onerror = () => {
+        img.style.display = "none";
+        if (!stage.querySelector(".ph")) {
+          const ph = document.createElement("div");
+          ph.className = "ph"; ph.textContent = "؟";
+          stage.insertBefore(ph, label);
+        }
+      };
+      label.textContent = t.value;
+      label.style.background = "var(--brand)";
+    } else if (t.kind === "space") {
+      img.style.display = "none";
+      label.textContent = "⎵ مسافة";
+      label.style.background = "#5b6b7d";
+    } else {
+      img.style.display = "none";
+      if (!stage.querySelector(".ph")) {
+        const ph = document.createElement("div");
+        ph.className = "ph"; ph.textContent = t.value.trim() || "·";
+        stage.insertBefore(ph, label);
+      }
+      label.textContent = "غير معروف";
+      label.style.background = "var(--miss)";
+    }
+    stage.classList.remove("swap");
+  }, 200);
+
+  // تحديث المؤشر والمصغّرات
+  const pct = sequence.length > 1 ? (idx / (sequence.length - 1)) * 100 : 100;
+  document.getElementById("progressFill").style.width = pct + "%";
+  const letterPos = sequence.slice(0, idx + 1).filter(x => x.kind !== "space").length;
+  const letterTotal = sequence.filter(x => x.kind !== "space").length;
+  document.getElementById("progressText").textContent =
+    `الحرف ${letterPos} من ${letterTotal}`;
+
+  document.querySelectorAll(".thumb").forEach((el, i) =>
+    el.classList.toggle("active", i === idx));
+  const activeThumb = document.querySelectorAll(".thumb")[idx];
+  if (activeThumb) activeThumb.scrollIntoView({ block:"nearest", inline:"center" });
+
+  document.getElementById("btnPrev").disabled = idx === 0;
+  document.getElementById("btnNext").disabled = idx === sequence.length - 1;
+}
+
+function step(dir) {
+  stopPlay();
+  const next = current + dir;
+  if (next < 0 || next >= sequence.length) return;
+  current = next;
+  showFrame(current);
+}
+
+function togglePlay() {
+  if (playing) { stopPlay(); return; }
+  if (current >= sequence.length - 1) current = 0;
+  playing = true;
+  document.getElementById("btnPlay").textContent = "⏸ إيقاف";
+  advance();
+}
+
+function advance() {
+  showFrame(current);
+  const speed = parseInt(document.getElementById("speed").value, 10);
+  timer = setTimeout(() => {
+    if (current >= sequence.length - 1) { stopPlay(); return; }
+    current++;
+    advance();
+  }, speed);
+}
+
+function stopPlay() {
+  playing = false;
+  clearTimeout(timer);
+  document.getElementById("btnPlay").textContent = "▶️ تشغيل";
+}
+
+function replay() {
+  stopPlay();
+  current = 0;
+  showFrame(0);
+  togglePlay();
+}
+
 function clearAll() {
+  stopPlay();
   document.getElementById("input").value = "";
-  const result = document.getElementById("result");
-  result.className = "empty";
-  result.textContent = "النتيجة ستظهر هنا بعد الترجمة.";
-  document.getElementById("warnings").innerHTML = "";
+  document.getElementById("player").style.display = "none";
+  const ph = document.getElementById("placeholder");
+  ph.style.display = "block";
+  ph.textContent = "النتيجة المتحركة ستظهر هنا بعد الترجمة.";
   document.getElementById("input").focus();
 }
 
