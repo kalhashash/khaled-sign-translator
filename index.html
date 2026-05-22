@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>أداة خالد لترجمة لغة الإشارة</title>
+<style>
+  :root {
+    --brand: #215aa0;
+    --brand-dark: #16407a;
+    --miss: #aa3c3c;
+    --miss-bg: #f5e6e6;
+    --bg: #eef2f7;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", Tahoma, "Geeza Pro", sans-serif;
+    background: var(--bg);
+    color: #1d2733;
+    min-height: 100vh;
+  }
+  header {
+    background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+    color: #fff;
+    padding: 28px 16px;
+    text-align: center;
+  }
+  header h1 { margin: 0; font-size: 1.6rem; }
+  header p { margin: 6px 0 0; opacity: .85; font-size: .95rem; }
+  main { max-width: 980px; margin: 0 auto; padding: 24px 16px 60px; }
+  .card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 20px;
+    box-shadow: 0 4px 18px rgba(0,0,0,.07);
+    margin-bottom: 22px;
+  }
+  textarea {
+    width: 100%;
+    min-height: 90px;
+    font-size: 1.25rem;
+    padding: 12px;
+    border: 2px solid #d4dce6;
+    border-radius: 10px;
+    resize: vertical;
+    font-family: inherit;
+  }
+  textarea:focus { outline: none; border-color: var(--brand); }
+  .row { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+  button {
+    background: var(--brand);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 22px;
+    font-size: 1rem;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  button:hover { background: var(--brand-dark); }
+  button.ghost { background: #e3e9f1; color: var(--brand-dark); }
+  button.ghost:hover { background: #d2dcea; }
+  .info { font-size: .9rem; color: #5b6b7d; margin-top: 10px; }
+  .signs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    justify-content: flex-start;
+    direction: rtl;
+  }
+  .tile {
+    width: 130px;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,.1);
+    background: #000;
+  }
+  .tile img { width: 100%; height: 130px; object-fit: contain; display: block; }
+  .tile .lbl {
+    background: var(--brand);
+    color: #fff;
+    text-align: center;
+    padding: 8px 4px;
+    font-size: 1.1rem;
+  }
+  .tile.missing img, .tile.missing .ph {
+    background: var(--miss-bg);
+    height: 130px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: var(--miss);
+  }
+  .tile.missing .lbl { background: var(--miss); }
+  .space { width: 30px; }
+  .warn {
+    background: #fff7e6;
+    border: 1px solid #ffd98a;
+    border-radius: 8px;
+    padding: 10px 14px;
+    margin-top: 14px;
+    font-size: .9rem;
+    color: #8a5a00;
+  }
+  footer { text-align: center; color: #8493a5; font-size: .82rem; padding: 20px; }
+  .empty { color: #8493a5; text-align: center; padding: 20px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🤟 أداة خالد لترجمة لغة الإشارة</h1>
+  <p>ترجمة النصوص العربية إلى لغة الإشارة العربية (ArSL)</p>
+</header>
+
+<main>
+  <div class="card">
+    <textarea id="input" placeholder="اكتب النص العربي هنا..." autofocus></textarea>
+    <div class="row">
+      <button onclick="translateText()">ترجم إلى لغة الإشارة</button>
+      <button class="ghost" onclick="clearAll()">مسح</button>
+    </div>
+    <div class="info">يدعم: تهجئة الحروف بالأصابع · إشارتا «ال» و«لا» · حذف التشكيل تلقائياً</div>
+  </div>
+
+  <div class="card">
+    <div id="result" class="empty">النتيجة ستظهر هنا بعد الترجمة.</div>
+    <div id="warnings"></div>
+  </div>
+</main>
+
+<footer>
+  أداة خالد لترجمة لغة الإشارة — تعمل بالكامل داخل متصفحك
+</footer>
+
+<script>
+// ===== خريطة الحروف ← أسماء ملفات الصور =====
+const SIGNS_PATH = "assets/signs/";
+const LETTERS = {
+  "ا":"alef","ب":"beh","ت":"teh","ث":"theh","ج":"jeem","ح":"hah","خ":"khah",
+  "د":"dal","ذ":"thal","ر":"reh","ز":"zay","س":"seen","ش":"sheen","ص":"sad",
+  "ض":"dad","ط":"tah","ظ":"zah","ع":"ain","غ":"ghain","ف":"feh","ق":"qaf",
+  "ك":"kaf","ل":"lam","م":"meem","ن":"noon","ه":"heh","و":"waw","ي":"yeh",
+  "ة":"teh_marbuta","ء":"hamza","لا":"laa","ال":"al"
+};
+const NORMALIZE = { "أ":"ا","إ":"ا","آ":"ا","ٱ":"ا","ؤ":"و","ئ":"ي","ى":"ي" };
+const TASHKEEL = /[ً-ْٰـ]/g;
+const WORD_START_ONLY = ["ال"];
+
+function normalizeText(text) {
+  let out = "";
+  for (const ch of text.replace(TASHKEEL, "")) {
+    out += NORMALIZE[ch] || ch;
+  }
+  return out;
+}
+
+function tokenize(text) {
+  const tokens = [];
+  const digraphs = Object.keys(LETTERS).filter(k => k.length > 1)
+                         .sort((a,b) => b.length - a.length);
+  let i = 0;
+  while (i < text.length) {
+    const ch = text[i];
+    const atWordStart = i === 0 || /\s/.test(text[i-1]);
+    let matched = false;
+    for (const dg of digraphs) {
+      if (WORD_START_ONLY.includes(dg) && !atWordStart) continue;
+      if (text.startsWith(dg, i)) {
+        tokens.push({ kind:"letter", value:dg });
+        i += dg.length;
+        matched = true;
+        break;
+      }
+    }
+    if (matched) continue;
+    if (/\s/.test(ch)) tokens.push({ kind:"space" });
+    else if (LETTERS[ch]) tokens.push({ kind:"letter", value:ch });
+    else tokens.push({ kind:"unknown", value:ch });
+    i++;
+  }
+  return tokens;
+}
+
+function translateText() {
+  const raw = document.getElementById("input").value.trim();
+  const result = document.getElementById("result");
+  const warnings = document.getElementById("warnings");
+  warnings.innerHTML = "";
+  if (!raw) {
+    result.className = "empty";
+    result.textContent = "الرجاء إدخال نص أولاً.";
+    return;
+  }
+  const tokens = tokenize(normalizeText(raw));
+  result.className = "signs";
+  result.innerHTML = "";
+
+  const unknown = new Set();
+  let letterCount = 0;
+
+  for (const t of tokens) {
+    if (t.kind === "space") {
+      const sp = document.createElement("div");
+      sp.className = "space";
+      result.appendChild(sp);
+      continue;
+    }
+    const tile = document.createElement("div");
+    tile.className = "tile";
+    if (t.kind === "letter") {
+      letterCount++;
+      const img = document.createElement("img");
+      img.src = SIGNS_PATH + LETTERS[t.value] + ".png";
+      img.alt = t.value;
+      img.onerror = () => {
+        tile.classList.add("missing");
+        img.replaceWith(Object.assign(document.createElement("div"),
+          { className:"ph", textContent:"؟" }));
+      };
+      tile.appendChild(img);
+      tile.appendChild(Object.assign(document.createElement("div"),
+        { className:"lbl", textContent:t.value }));
+    } else {
+      if (t.value.trim()) unknown.add(t.value);
+      tile.classList.add("missing");
+      tile.appendChild(Object.assign(document.createElement("div"),
+        { className:"ph", textContent: t.value.trim() || "·" }));
+      tile.appendChild(Object.assign(document.createElement("div"),
+        { className:"lbl", textContent:"غير معروف" }));
+    }
+    result.appendChild(tile);
+  }
+
+  let msg = `عدد الحروف المترجمة: ${letterCount}`;
+  if (unknown.size) msg += ` — رموز غير معروفة تم تجاهلها: ${[...unknown].join(" ")}`;
+  warnings.innerHTML = `<div class="warn">${msg}</div>`;
+}
+
+function clearAll() {
+  document.getElementById("input").value = "";
+  const result = document.getElementById("result");
+  result.className = "empty";
+  result.textContent = "النتيجة ستظهر هنا بعد الترجمة.";
+  document.getElementById("warnings").innerHTML = "";
+  document.getElementById("input").focus();
+}
+
+document.getElementById("input").addEventListener("keydown", e => {
+  if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) translateText();
+});
+</script>
+</body>
+</html>
