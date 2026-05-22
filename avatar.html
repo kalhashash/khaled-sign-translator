@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#13294b">
+<title>الأفاتار 3D — أداة خالد لترجمة لغة الإشارة</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:#13294b; --brand:#1f4e8c; --brand-2:#2f6db0;
+    --accent:#f4a72c; --accent-d:#d98c12; --miss:#c0504d;
+    --surface:#fff; --line:#e3e9f2; --muted:#6b7a90;
+    --radius:18px; --shadow:0 10px 30px -12px rgba(19,41,75,.28);
+    --shadow-sm:0 4px 14px -6px rgba(19,41,75,.22);
+  }
+  * { box-sizing:border-box; }
+  html,body { margin:0; padding:0; }
+  body {
+    font-family:"Tajawal",-apple-system,"Segoe UI",Tahoma,sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(900px 500px at 100% -5%, #e8f0fb 0%, transparent 60%),
+      radial-gradient(800px 500px at 0% 0%, #fdf3e0 0%, transparent 55%),
+      #eef3f9;
+    min-height:100vh; line-height:1.6;
+  }
+  header {
+    position:relative; overflow:hidden;
+    background:linear-gradient(135deg,#13294b 0%,#1f4e8c 60%,#2f6db0 100%);
+    color:#fff; padding:46px 20px 56px; text-align:center;
+  }
+  header::before {
+    content:""; position:absolute; inset:0;
+    background:
+      radial-gradient(420px 220px at 85% 0%, rgba(244,167,44,.32), transparent 70%),
+      radial-gradient(360px 240px at 10% 110%, rgba(47,109,176,.55), transparent 70%);
+  }
+  .hero { position:relative; z-index:1; }
+  .hero .badge {
+    display:inline-flex; align-items:center; gap:8px;
+    background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.22);
+    padding:6px 14px; border-radius:999px; font-size:.82rem; font-weight:500;
+    backdrop-filter:blur(6px); margin-bottom:16px;
+  }
+  .hero h1 { margin:0; font-size:1.85rem; font-weight:800; letter-spacing:-.5px; }
+  .hero p { margin:9px auto 0; max-width:540px; opacity:.88; font-size:1rem; }
+  .wave-divider { position:absolute; bottom:-1px; left:0; right:0; line-height:0; }
+  .wave-divider svg { width:100%; height:46px; display:block; }
+  main {
+    max-width:1000px; margin:-30px auto 0; padding:0 18px 70px;
+    position:relative; z-index:2;
+  }
+  .card {
+    background:var(--surface); border:1px solid var(--line);
+    border-radius:var(--radius); padding:26px;
+    box-shadow:var(--shadow); margin-bottom:22px;
+  }
+  .card-head { display:flex; align-items:center; gap:12px; margin-bottom:18px; }
+  .card-head .ic {
+    width:44px; height:44px; flex:none; display:grid; place-items:center;
+    border-radius:12px; background:linear-gradient(135deg,var(--brand),var(--brand-2));
+    color:#fff; font-size:1.3rem; box-shadow:var(--shadow-sm);
+  }
+  .card-head h2 { margin:0; font-size:1.22rem; font-weight:700; }
+  .card-head p { margin:1px 0 0; font-size:.85rem; color:var(--muted); }
+  .exp {
+    background:#fff7e6; border:1px solid #ffdf9e; color:#946100;
+    border-radius:12px; padding:11px 15px; font-size:.88rem; margin-bottom:18px;
+  }
+  textarea {
+    width:100%; min-height:84px; font-family:inherit; font-size:1.3rem;
+    padding:16px; border:2px solid var(--line); border-radius:14px;
+    resize:vertical; background:#fafbfd; transition:border-color .15s,box-shadow .15s;
+  }
+  textarea:focus {
+    outline:none; border-color:var(--brand-2);
+    box-shadow:0 0 0 4px rgba(47,109,176,.13); background:#fff;
+  }
+  .row { display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; align-items:center; }
+  button {
+    font-family:inherit; font-size:1rem; font-weight:700;
+    border:none; border-radius:12px; cursor:pointer; padding:13px 24px;
+    transition:transform .12s,box-shadow .15s,background .15s,filter .15s;
+  }
+  button:active { transform:scale(.96); }
+  .btn-primary {
+    background:linear-gradient(135deg,var(--brand),var(--brand-2));
+    color:#fff; box-shadow:0 8px 20px -8px rgba(31,78,140,.7);
+  }
+  .btn-primary:hover { filter:brightness(1.07); }
+  .btn-ghost { background:#eef2f8; color:var(--brand); }
+  .btn-ghost:hover { background:#e2e9f3; }
+  .btn-accent {
+    background:linear-gradient(135deg,var(--accent),var(--accent-d));
+    color:#3a2a05; box-shadow:0 8px 20px -8px rgba(244,167,44,.7);
+  }
+  .btn-icon { padding:12px 16px; font-size:1.15rem; }
+  button:disabled { opacity:.38; cursor:not-allowed; transform:none; }
+  .hint { font-size:.86rem; color:var(--muted); margin-top:12px; }
+
+  /* ===== مسرح 3D ===== */
+  .stage3d {
+    position:relative; border-radius:16px; overflow:hidden;
+    height:440px;
+    background:radial-gradient(circle at 50% 32%, #25406a 0%, #0b1322 80%);
+    box-shadow:inset 0 0 70px rgba(0,0,0,.6);
+  }
+  .stage3d canvas { display:block; width:100%; height:100%; }
+  .stage-label {
+    position:absolute; bottom:0; left:0; right:0; padding:13px;
+    text-align:center; font-size:1.7rem; font-weight:700; color:#fff;
+    background:linear-gradient(135deg,var(--brand),var(--brand-2));
+    pointer-events:none;
+  }
+  .loading {
+    position:absolute; inset:0; display:grid; place-items:center;
+    color:#cdd9e6; font-size:1rem;
+  }
+  .progress-track {
+    height:9px; background:#e7ecf3; border-radius:99px;
+    overflow:hidden; margin:16px 0 8px;
+  }
+  .progress-fill {
+    height:100%; width:0%;
+    background:linear-gradient(90deg,var(--accent),var(--accent-d));
+    border-radius:99px; transition:width .2s ease;
+  }
+  .progress-text { text-align:center; color:var(--muted); font-size:.9rem; font-weight:500; }
+  .controls { display:flex; gap:9px; flex-wrap:wrap; align-items:center; margin-top:14px; }
+  .speed {
+    display:flex; align-items:center; gap:9px; margin-right:auto;
+    background:#f2f5f9; padding:8px 14px; border-radius:99px;
+  }
+  .speed input { cursor:pointer; accent-color:var(--brand); width:120px; }
+  .empty { text-align:center; color:var(--muted); padding:30px 16px; }
+  .empty .big { font-size:2.4rem; display:block; margin-bottom:6px; opacity:.55; }
+  footer { text-align:center; color:var(--muted); font-size:.84rem; padding:8px 20px 40px; }
+  footer a { color:var(--brand); text-decoration:none; font-weight:700; }
+  @media (max-width:560px){
+    .hero h1{font-size:1.45rem;} .card{padding:20px;} .stage3d{height:340px;}
+    .speed{margin-right:0;width:100%;justify-content:center;}
+  }
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+
+<header>
+  <div class="hero">
+    <span class="badge">🧊 وضع تجريبي — أفاتار ثلاثي الأبعاد</span>
+    <h1>الأفاتار 3D — تهجئة لغة الإشارة</h1>
+    <p>يدٌ ثلاثية الأبعاد تهجّئ النص العربي حرفاً بحرف داخل متصفحك.</p>
+  </div>
+  <div class="wave-divider" aria-hidden="true">
+    <svg viewBox="0 0 1440 46" preserveAspectRatio="none">
+      <path d="M0,46 L0,20 C240,46 480,0 720,14 C960,28 1200,46 1440,12 L1440,46 Z" fill="#eef3f9"/>
+    </svg>
+  </div>
+</header>
+
+<main>
+  <div class="card">
+    <div class="card-head">
+      <div class="ic">✍️</div>
+      <div>
+        <h2>اكتب النص</h2>
+        <p>سيقوم الأفاتار بتهجئته حرفاً بحرف</p>
+      </div>
+    </div>
+    <div class="exp">
+      ⚠️ <b>وضع تجريبي:</b> أشكال اليد تقريبية وليست بدقّة لغة الإشارة الكويتية الرسمية —
+      للعرض الدقيق استخدم <a href="index.html">وضع الصور</a>.
+    </div>
+    <textarea id="input" placeholder="مثال:  مرحبا" autofocus></textarea>
+    <div class="row">
+      <button class="btn-primary" onclick="translateText()">🧊 ترجم بالأفاتار 3D</button>
+      <button class="btn-ghost" onclick="location.href='index.html'">↩ العودة لوضع الصور</button>
+    </div>
+    <div class="hint">💡 يمكنك تدوير اليد بالسحب بالماوس/الإصبع.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="ic">🖐️</div>
+      <div>
+        <h2>الأفاتار</h2>
+        <p>عرض ثلاثي الأبعاد متحرك للحروف</p>
+      </div>
+    </div>
+
+    <div id="placeholder" class="empty">
+      <span class="big">🧊</span>
+      اكتب نصاً واضغط «ترجم بالأفاتار 3D» لبدء العرض.
+    </div>
+
+    <div id="player" style="display:none">
+      <div class="stage3d" id="stage3d">
+        <div class="loading" id="loading">…جارٍ تحميل الأفاتار</div>
+        <div class="stage-label" id="stageLabel"></div>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-text" id="progressText"></div>
+      <div class="controls">
+        <button class="btn-ghost btn-icon" id="btnPrev" onclick="step(-1)" title="السابق">⏮</button>
+        <button class="btn-accent btn-icon" id="btnPlay" onclick="togglePlay()">▶️ تشغيل</button>
+        <button class="btn-ghost btn-icon" id="btnNext" onclick="step(1)" title="التالي">⏭</button>
+        <button class="btn-ghost btn-icon" onclick="replay()" title="إعادة">🔄</button>
+        <label class="speed">
+          <span>🐢</span>
+          <input type="range" id="speed" min="350" max="1800" step="50" value="850">
+          <span>🐇</span>
+        </label>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  وضع الأفاتar 3D التجريبي · <a href="index.html">العودة لوضع الصور الدقيق</a>
+</footer>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+/* ============ منطق الترجمة (مطابق لوضع الصور) ============ */
+const LETTER_KEYS = ["ا","ب","ت","ث","ج","ح","خ","د","ذ","ر","ز","س","ش","ص","ض",
+  "ط","ظ","ع","غ","ف","ق","ك","ل","م","ن","ه","و","ي","ة","ء","لا","ال"];
+const NORMALIZE = { "أ":"ا","إ":"ا","آ":"ا","ٱ":"ا","ؤ":"و","ئ":"ي","ى":"ي" };
+const TASHKEEL = /[ً-ْٰـ]/g;
+const WORD_START_ONLY = ["ال"];
+
+/* أوضاع اليد التقريبية: [ابهام, سبابة, وسطى, بنصر, خنصر] قيمة 0=ممدود 1=مطوي
+   thumbOut = انفراج الإبهام (0..1) */
+const POSES = {
+  "ا":{c:[0,1,1,1,1],t:1},   "ب":{c:[1,0,1,1,1]},      "ت":{c:[1,0,0,1,1]},
+  "ث":{c:[1,0,0,0,1]},       "ج":{c:[.45,.55,.55,.55,.55],t:.5}, "ح":{c:[0,0,0,0,0]},
+  "خ":{c:[.3,.45,1,1,1]},    "د":{c:[.5,.2,1,1,1]},    "ذ":{c:[.5,.2,.2,1,1]},
+  "ر":{c:[1,.25,.35,1,1]},   "ز":{c:[.6,0,1,1,0]},     "س":{c:[.5,0,0,0,1]},
+  "ش":{c:[1,0,0,0,0]},       "ص":{c:[.3,.6,.6,1,1]},   "ض":{c:[.3,.6,.6,.6,1]},
+  "ط":{c:[0,1,1,1,0]},       "ظ":{c:[0,1,1,0,0]},      "ع":{c:[.8,.85,1,1,1]},
+  "غ":{c:[.8,.85,.85,1,1]},  "ف":{c:[.55,.55,0,0,0]},  "ق":{c:[.55,.5,.5,0,0]},
+  "ك":{c:[0,0,0,1,1]},       "ل":{c:[0,0,1,1,1],t:1},  "م":{c:[1,1,1,1,0]},
+  "ن":{c:[1,1,1,0,0]},       "ه":{c:[.6,.6,.6,.6,.6]}, "و":{c:[0,1,1,1,.25]},
+  "ي":{c:[1,1,1,1,0]},       "ة":{c:[1,1,1,1,.5]},     "ء":{c:[.7,.9,.9,.9,.9]},
+  "لا":{c:[0,0,1,1,1]},      "ال":{c:[0,1,1,1,0],t:.6}
+};
+const REST = {c:[0,0,0,0,0],t:.4};
+
+function normalizeText(t){
+  let o=""; for(const ch of t.replace(TASHKEEL,"")) o+=NORMALIZE[ch]||ch; return o;
+}
+function tokenize(text){
+  const tokens=[];
+  const digraphs=LETTER_KEYS.filter(k=>k.length>1).sort((a,b)=>b.length-a.length);
+  let i=0;
+  while(i<text.length){
+    const ch=text[i];
+    const ws=i===0||/\s/.test(text[i-1]);
+    let m=false;
+    for(const dg of digraphs){
+      if(WORD_START_ONLY.includes(dg)&&!ws) continue;
+      if(text.startsWith(dg,i)){ tokens.push({kind:"letter",value:dg}); i+=dg.length; m=true; break; }
+    }
+    if(m) continue;
+    if(/\s/.test(ch)) tokens.push({kind:"space"});
+    else if(LETTER_KEYS.includes(ch)) tokens.push({kind:"letter",value:ch});
+    else tokens.push({kind:"unknown",value:ch});
+    i++;
+  }
+  return tokens;
+}
+
+/* ============ مشهد 3D ============ */
+let scene,camera,renderer,controls,clock;
+const fingers=[];          // [thumb,index,middle,ring,pinky]
+let thumbBase=null;
+let curCurl=[0,0,0,0,0], tgtCurl=[0,0,0,0,0];
+let curSpread=.4, tgtSpread=.4;
+const CURL_K=[0.92,1.0,0.85];   // معاملات الانحناء للمفاصل الثلاثة (إجمالي ~160°)
+
+function makeFinger(lengths,radius,mat){
+  const joints=[]; let parent=null, base=null;
+  lengths.forEach(len=>{
+    const j=new THREE.Group();
+    const mesh=new THREE.Mesh(new THREE.CapsuleGeometry(radius,len,8,16),mat);
+    mesh.position.y=len/2; mesh.castShadow=true;
+    j.add(mesh);
+    const tip=new THREE.Group(); tip.position.y=len; j.add(tip);
+    if(parent) parent.add(j); else base=j;
+    parent=tip; joints.push(j);
+  });
+  return {base,joints};
+}
+
+function buildHand(){
+  const skin=new THREE.MeshStandardMaterial({color:0xf3c9a4,roughness:.62,metalness:.04});
+  const hand=new THREE.Group();
+
+  // راحة اليد
+  const palm=new THREE.Mesh(new THREE.BoxGeometry(1.78,1.95,0.5),skin);
+  palm.geometry.translate(0,0.15,0);
+  palm.castShadow=true; hand.add(palm);
+
+  // الرسغ
+  const wrist=new THREE.Mesh(new THREE.CylinderGeometry(.62,.5,.9,20),skin);
+  wrist.position.y=-1.25; wrist.castShadow=true; hand.add(wrist);
+
+  // الأصابع الأربعة
+  const specs=[
+    {x: 0.56,len:[.6,.5,.4],   r:.165}, // سبابة
+    {x: 0.19,len:[.66,.55,.43],r:.17},  // وسطى
+    {x:-0.19,len:[.6,.5,.4],   r:.165}, // بنصر
+    {x:-0.55,len:[.46,.4,.32], r:.145}  // خنصر
+  ];
+  specs.forEach(s=>{
+    const f=makeFinger(s.len,s.r,skin);
+    f.base.position.set(s.x,1.05,0);
+    hand.add(f.base);
+    fingers.push(f);
+  });
+
+  // الإبهام
+  const thumb=makeFinger([.56,.5],.205,skin);
+  thumbBase=new THREE.Group();
+  thumbBase.position.set(1.0,-0.35,0.12);
+  thumbBase.add(thumb.base);
+  hand.add(thumbBase);
+  fingers.unshift(thumb);   // ليصبح الترتيب [ابهام,سبابة,وسطى,بنصر,خنصر]
+
+  hand.position.y=0.35;
+  return hand;
+}
+
+function applyPose(){
+  // الأصابع الأربعة (1..4)
+  for(let i=1;i<5;i++){
+    const c=curCurl[i];
+    fingers[i].joints.forEach((j,k)=> j.rotation.x=c*CURL_K[k]);
+  }
+  // الإبهام
+  const tc=curCurl[0];
+  fingers[0].joints.forEach((j,k)=> j.rotation.x=tc*0.9*(k===0?1:1.1));
+  thumbBase.rotation.z=0.55+curSpread*0.7;
+  thumbBase.rotation.x=-0.25+tc*0.5;
+}
+
+function initScene(){
+  const host=document.getElementById("stage3d");
+  scene=new THREE.Scene();
+  clock=new THREE.Clock();
+
+  camera=new THREE.PerspectiveCamera(42,host.clientWidth/host.clientHeight,0.1,100);
+  camera.position.set(0,0.6,8.2);
+
+  renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
+  renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+  renderer.setSize(host.clientWidth,host.clientHeight);
+  renderer.shadowMap.enabled=true;
+  renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  host.insertBefore(renderer.domElement,host.firstChild);
+
+  // إضاءة
+  scene.add(new THREE.HemisphereLight(0xbcd4ff,0x1a2436,0.95));
+  const key=new THREE.DirectionalLight(0xffffff,1.6);
+  key.position.set(4,7,6); key.castShadow=true;
+  key.shadow.mapSize.set(1024,1024);
+  key.shadow.camera.near=1; key.shadow.camera.far=25;
+  scene.add(key);
+  const rim=new THREE.DirectionalLight(0x9ec5ff,0.7);
+  rim.position.set(-5,2,-4); scene.add(rim);
+
+  // أرضية لاستقبال الظل
+  const ground=new THREE.Mesh(
+    new THREE.CircleGeometry(9,48),
+    new THREE.ShadowMaterial({opacity:.32})
+  );
+  ground.rotation.x=-Math.PI/2; ground.position.y=-3.2;
+  ground.receiveShadow=true; scene.add(ground);
+
+  // اليد
+  const hand=buildHand();
+  scene.add(hand);
+  applyPose();
+
+  controls=new OrbitControls(camera,renderer.domElement);
+  controls.enableDamping=true; controls.dampingFactor=.09;
+  controls.enablePan=false;
+  controls.minDistance=5; controls.maxDistance=12;
+  controls.target.set(0,0.2,0);
+
+  document.getElementById("loading").style.display="none";
+  window.addEventListener("resize",onResize);
+  animate();
+}
+
+function onResize(){
+  const host=document.getElementById("stage3d");
+  if(!host.clientWidth) return;
+  camera.aspect=host.clientWidth/host.clientHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(host.clientWidth,host.clientHeight);
+}
+
+function animate(){
+  requestAnimationFrame(animate);
+  const dt=Math.min(clock.getDelta(),0.05);
+  const ease=Math.min(1,dt*9);
+  for(let i=0;i<5;i++) curCurl[i]+=(tgtCurl[i]-curCurl[i])*ease;
+  curSpread+=(tgtSpread-curSpread)*ease;
+  applyPose();
+  controls.update();
+  renderer.render(scene,camera);
+}
+
+/* ============ المشغّل ============ */
+let sequence=[], current=0, playing=false, timer=null;
+
+function setTarget(token){
+  let pose=REST, label="⎵ مسافة";
+  if(token.kind==="letter"){ pose=POSES[token.value]||REST; label=token.value; }
+  else if(token.kind==="unknown"){ pose=REST; label="غير معروف"; }
+  tgtCurl=pose.c.slice();
+  tgtSpread=(pose.t!==undefined)?pose.t:0.4;
+  const lbl=document.getElementById("stageLabel");
+  lbl.textContent=label;
+  lbl.style.background=token.kind==="space"?"#5b6b7d"
+    :token.kind==="unknown"?"var(--miss)"
+    :"linear-gradient(135deg,var(--brand),var(--brand-2))";
+}
+
+function showFrame(idx){
+  current=idx;
+  setTarget(sequence[idx]);
+  const pct=sequence.length>1?(idx/(sequence.length-1))*100:100;
+  document.getElementById("progressFill").style.width=pct+"%";
+  const pos=sequence.slice(0,idx+1).filter(x=>x.kind!=="space").length;
+  const total=sequence.filter(x=>x.kind!=="space").length;
+  document.getElementById("progressText").textContent=`الحرف ${pos} من ${total}`;
+  document.getElementById("btnPrev").disabled=idx===0;
+  document.getElementById("btnNext").disabled=idx===sequence.length-1;
+}
+
+window.translateText=function(){
+  const raw=document.getElementById("input").value.trim();
+  const ph=document.getElementById("placeholder");
+  const player=document.getElementById("player");
+  if(!raw){ player.style.display="none"; ph.style.display="block";
+    ph.innerHTML='<span class="big">✏️</span>الرجاء إدخال نص أولاً.'; return; }
+  const tokens=tokenize(normalizeText(raw));
+  if(tokens.filter(t=>t.kind==="letter").length===0){
+    player.style.display="none"; ph.style.display="block";
+    ph.innerHTML='<span class="big">🚫</span>لا يوجد نص عربي قابل للترجمة.'; return;
+  }
+  sequence=tokens;
+  ph.style.display="none"; player.style.display="block";
+  if(!renderer) initScene(); else onResize();
+  stopPlay(); showFrame(0);
+};
+
+window.step=function(d){
+  stopPlay();
+  const n=current+d;
+  if(n<0||n>=sequence.length) return;
+  showFrame(n);
+};
+window.togglePlay=function(){
+  if(playing){ stopPlay(); return; }
+  if(current>=sequence.length-1) showFrame(0);
+  playing=true;
+  document.getElementById("btnPlay").textContent="⏸ إيقاف";
+  advance();
+};
+function advance(){
+  showFrame(current);
+  const speed=parseInt(document.getElementById("speed").value,10);
+  timer=setTimeout(()=>{
+    if(current>=sequence.length-1){ stopPlay(); return; }
+    current++; advance();
+  },speed);
+}
+function stopPlay(){
+  playing=false; clearTimeout(timer);
+  document.getElementById("btnPlay").textContent="▶️ تشغيل";
+}
+window.stopPlay=stopPlay;
+window.replay=function(){ stopPlay(); showFrame(0); window.togglePlay(); };
+
+document.getElementById("input").addEventListener("keydown",e=>{
+  if(e.key==="Enter"&&(e.ctrlKey||e.metaKey)) window.translateText();
+});
+</script>
+</body>
+</html>
