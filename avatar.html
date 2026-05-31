@@ -338,9 +338,9 @@ function applyPose(){
 
 // زوايا رفع الذراع (تُضبط بصرياً) — لا تتداخل مع عظام الأصابع
 const ARM_POSE={
-  RightArm:[0.0,0.0,-0.95],
-  RightForeArm:[0.0,0.0,-0.95],
-  RightHand:[1.5,0.2,0.45]
+  RightArm:[0.0,0.0,-0.45],
+  RightForeArm:[0.0,0.0,-1.75],
+  RightHand:[0.0,-1.45,0.0]
 };
 function poseArmForSigning(){
   for(const [name,r] of Object.entries(ARM_POSE)){
@@ -390,7 +390,7 @@ function initScene(cb){
     scene.updateMatrixWorld(true);
     const hp=new THREE.Vector3(); bones['RightHand'].getWorldPosition(hp);
     controls.target.set(hp.x, hp.y+0.02, hp.z);
-    camera.position.set(hp.x, hp.y+0.10, hp.z+0.50);
+    camera.position.set(hp.x, hp.y+0.08, hp.z+0.55);
     controls.update();
     avatarReady=true;
     window.AV={bones,restQuat,scene,camera,controls,renderer,THREE,applyPose,poseArmForSigning,
