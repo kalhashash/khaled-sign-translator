@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#13294b">
-<title>الأفاتار 3D — أداة خالد لترجمة لغة الإشارة</title>
+<title>الأفاتار 3D — أداة ترجمة لغة الإشارة</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
@@ -330,8 +330,8 @@ function computeFlexAxes(){
     idx.quaternion.copy(baseQ).multiply(new THREE.Quaternion().setFromAxisAngle(flexAxis['RightHandIndex1'],0.6));
     scene.updateMatrixWorld(true);
     const after=new THREE.Vector3(); tip.getWorldPosition(after);
-    // إذا تحرّك الطرف بعيداً عن الكاميرا (‎+Z‎) فالطيّ صحيح؛ وإلا اعكس
-    if(after.z - before.z < 0) CURL_SIGN=-1;
+    // الطيّ الصحيح يقرّب طرف الإصبع نحو الكفّ (داخل اليد، جهة الكاميرا +Z)
+    if(after.z - before.z > 0) CURL_SIGN=-1;
     idx.quaternion.copy(baseQ); // إعادة للراحة
     scene.updateMatrixWorld(true);
   }
