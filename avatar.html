@@ -336,18 +336,44 @@ function applyPose(){
   }
 }
 
-// زوايا رفع الذراع (تُضبط بصرياً) — لا تتداخل مع عظام الأصابع
+// زوايا رفع الذراع: ترفع اليد بجانب الرأس أمام الخلفية النظيفة
 const ARM_POSE={
-  RightArm:[0.0,0.0,-0.45],
-  RightForeArm:[0.0,0.0,-1.75],
-  RightHand:[0.0,-1.45,0.0]
+  RightArm:[0.0,0.2,-1.15],
+  RightForeArm:[0.0,0.0,-1.5]
 };
+const HAND_TILT=0.12;   // ميل بسيط للأصابع نحو الكاميرا
 function poseArmForSigning(){
   for(const [name,r] of Object.entries(ARM_POSE)){
     const b=bones[name]; if(!b) continue;
     const q=new THREE.Quaternion().setFromEuler(new THREE.Euler(r[0],r[1],r[2]));
-    b.quaternion.copy(restQuat[name]).multiply(q);   // لا نعدّل restQuat
+    b.quaternion.copy(restQuat[name]).multiply(q);
   }
+}
+
+// توجيه الرسغ برمجياً: الكفّ نحو الكاميرا والأصابع لأعلى — بصرف النظر عن وضعية الذراع
+function poseWristToCamera(){
+  scene.updateMatrixWorld(true);
+  const H=bones['RightHand'], M=bones['RightHandMiddle1'],
+        I=bones['RightHandIndex1'], P=bones['RightHandPinky1'];
+  if(!H||!M||!I||!P) return;
+  // محاور اليد المحلية (من مواضع جذور الأصابع)
+  const lUp=M.position.clone().normalize();
+  const lIP=I.position.clone().sub(P.position).normalize();
+  const lPalm=new THREE.Vector3().crossVectors(lUp,lIP).normalize();
+  const lSide=new THREE.Vector3().crossVectors(lUp,lPalm).normalize();
+  lPalm.crossVectors(lSide,lUp).normalize();
+  const localBasis=new THREE.Matrix4().makeBasis(lSide,lUp,lPalm);
+  // الهدف العالمي: أصابع لأعلى (بميل بسيط)، كفّ نحو الكاميرا (+Z)
+  const wUp=new THREE.Vector3(0,Math.cos(HAND_TILT),Math.sin(HAND_TILT)).normalize();
+  const wPalm=new THREE.Vector3(0,0,1);
+  const wSide=new THREE.Vector3().crossVectors(wUp,wPalm).normalize();
+  wPalm.crossVectors(wSide,wUp).normalize();
+  const worldBasis=new THREE.Matrix4().makeBasis(wSide,wUp,wPalm);
+  const Rworld=worldBasis.clone().multiply(localBasis.clone().transpose());
+  const qW=new THREE.Quaternion().setFromRotationMatrix(Rworld);
+  const qP=new THREE.Quaternion(); H.parent.getWorldQuaternion(qP);
+  H.quaternion.copy(qP.invert().multiply(qW));
+  restQuat['RightHand']=H.quaternion.clone();   // اجعلها مرجع الأصابع
 }
 
 let avatarReady=false;
@@ -385,12 +411,13 @@ function initScene(cb){
     scene.add(model);
     collectBones(model);
     poseArmForSigning();
+    poseWristToCamera();
     applyPose();
-    // تأطير الكاميرا عن قرب على اليد لإظهار شكل الأصابع بوضوح
+    // تأطير الكاميرا على اليد المرفوعة بجانب الرأس
     scene.updateMatrixWorld(true);
     const hp=new THREE.Vector3(); bones['RightHand'].getWorldPosition(hp);
-    controls.target.set(hp.x, hp.y+0.02, hp.z);
-    camera.position.set(hp.x, hp.y+0.08, hp.z+0.55);
+    controls.target.set(hp.x, hp.y-0.04, hp.z);
+    camera.position.set(hp.x, hp.y-0.02, hp.z+0.66);
     controls.update();
     avatarReady=true;
     window.AV={bones,restQuat,scene,camera,controls,renderer,THREE,applyPose,poseArmForSigning,
