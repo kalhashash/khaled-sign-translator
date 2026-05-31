@@ -70,6 +70,7 @@
     background:#fff7e6; border:1px solid #ffdf9e; color:#946100;
     border-radius:12px; padding:11px 15px; font-size:.88rem; margin-bottom:18px;
   }
+  .exp a { color:var(--brand); font-weight:700; }
   textarea {
     width:100%; min-height:84px; font-family:inherit; font-size:1.3rem;
     padding:16px; border:2px solid var(--line); border-radius:14px;
@@ -101,11 +102,10 @@
   button:disabled { opacity:.38; cursor:not-allowed; transform:none; }
   .hint { font-size:.86rem; color:var(--muted); margin-top:12px; }
 
-  /* ===== مسرح 3D ===== */
   .stage3d {
     position:relative; border-radius:16px; overflow:hidden;
-    height:440px;
-    background:radial-gradient(circle at 50% 32%, #25406a 0%, #0b1322 80%);
+    height:480px;
+    background:radial-gradient(circle at 50% 30%, #2b4a78 0%, #0b1322 82%);
     box-shadow:inset 0 0 70px rgba(0,0,0,.6);
   }
   .stage3d canvas { display:block; width:100%; height:100%; }
@@ -117,8 +117,15 @@
   }
   .loading {
     position:absolute; inset:0; display:grid; place-items:center;
-    color:#cdd9e6; font-size:1rem;
+    color:#cdd9e6; font-size:1rem; flex-direction:column; gap:14px;
+    text-align:center; padding:20px;
   }
+  .spinner {
+    width:42px; height:42px; border:4px solid rgba(255,255,255,.2);
+    border-top-color:var(--accent); border-radius:50%;
+    animation:spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform:rotate(360deg); } }
   .progress-track {
     height:9px; background:#e7ecf3; border-radius:99px;
     overflow:hidden; margin:16px 0 8px;
@@ -140,7 +147,7 @@
   footer { text-align:center; color:var(--muted); font-size:.84rem; padding:8px 20px 40px; }
   footer a { color:var(--brand); text-decoration:none; font-weight:700; }
   @media (max-width:560px){
-    .hero h1{font-size:1.45rem;} .card{padding:20px;} .stage3d{height:340px;}
+    .hero h1{font-size:1.45rem;} .card{padding:20px;} .stage3d{height:380px;}
     .speed{margin-right:0;width:100%;justify-content:center;}
   }
 </style>
@@ -157,9 +164,9 @@
 
 <header>
   <div class="hero">
-    <span class="badge">🧊 وضع تجريبي — أفاتار ثلاثي الأبعاد</span>
+    <span class="badge">🧑 أفاتار ثلاثي الأبعاد — شخصية عربية</span>
     <h1>الأفاتار 3D — تهجئة لغة الإشارة</h1>
-    <p>يدٌ ثلاثية الأبعاد تهجّئ النص العربي حرفاً بحرف داخل متصفحك.</p>
+    <p>شخصية ثلاثية الأبعاد تهجّئ النص العربي حرفاً بحرف داخل متصفحك.</p>
   </div>
   <div class="wave-divider" aria-hidden="true">
     <svg viewBox="0 0 1440 46" preserveAspectRatio="none">
@@ -174,7 +181,7 @@
       <div class="ic">✍️</div>
       <div>
         <h2>اكتب النص</h2>
-        <p>سيقوم الأفاتار بتهجئته حرفاً بحرف</p>
+        <p>ستقوم الشخصية بتهجئته حرفاً بحرف</p>
       </div>
     </div>
     <div class="exp">
@@ -186,26 +193,26 @@
       <button class="btn-primary" onclick="translateText()">🧊 ترجم بالأفاتار 3D</button>
       <button class="btn-ghost" onclick="location.href='index.html'">↩ العودة لوضع الصور</button>
     </div>
-    <div class="hint">💡 يمكنك تدوير اليد بالسحب بالماوس/الإصبع.</div>
+    <div class="hint">💡 يمكنك تدوير الشخصية بالسحب بالماوس/الإصبع، وتقريبها بالعجلة.</div>
   </div>
 
   <div class="card">
     <div class="card-head">
-      <div class="ic">🖐️</div>
+      <div class="ic">🧑</div>
       <div>
         <h2>الأفاتار</h2>
-        <p>عرض ثلاثي الأبعاد متحرك للحروف</p>
+        <p>شخصية عربية ثلاثية الأبعاد متحركة</p>
       </div>
     </div>
 
     <div id="placeholder" class="empty">
-      <span class="big">🧊</span>
+      <span class="big">🧑</span>
       اكتب نصاً واضغط «ترجم بالأفاتار 3D» لبدء العرض.
     </div>
 
     <div id="player" style="display:none">
       <div class="stage3d" id="stage3d">
-        <div class="loading" id="loading">…جارٍ تحميل الأفاتار</div>
+        <div class="loading" id="loading"><div class="spinner"></div><div>…جارٍ تحميل الشخصية 3D</div></div>
         <div class="stage-label" id="stageLabel"></div>
       </div>
       <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
@@ -226,22 +233,22 @@
 </main>
 
 <footer>
-  وضع الأفاتar 3D التجريبي · <a href="index.html">العودة لوضع الصور الدقيق</a>
+  وضع الأفاتار 3D التجريبي · <a href="index.html">العودة لوضع الصور الدقيق</a>
 </footer>
 
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 
-/* ============ منطق الترجمة (مطابق لوضع الصور) ============ */
+/* ============ منطق الترجمة ============ */
 const LETTER_KEYS = ["ا","ب","ت","ث","ج","ح","خ","د","ذ","ر","ز","س","ش","ص","ض",
   "ط","ظ","ع","غ","ف","ق","ك","ل","م","ن","ه","و","ي","ة","ء","لا","ال"];
 const NORMALIZE = { "أ":"ا","إ":"ا","آ":"ا","ٱ":"ا","ؤ":"و","ئ":"ي","ى":"ي" };
 const TASHKEEL = /[ً-ْٰـ]/g;
 const WORD_START_ONLY = ["ال"];
 
-/* أوضاع اليد التقريبية: [ابهام, سبابة, وسطى, بنصر, خنصر] قيمة 0=ممدود 1=مطوي
-   thumbOut = انفراج الإبهام (0..1) */
+/* أوضاع الأصابع: c=[ابهام,سبابة,وسطى,بنصر,خنصر] 0=ممدود 1=مطوي ، t=انفراج الإبهام */
 const POSES = {
   "ا":{c:[0,1,1,1,1],t:1},   "ب":{c:[1,0,1,1,1]},      "ت":{c:[1,0,0,1,1]},
   "ث":{c:[1,0,0,0,1]},       "ج":{c:[.45,.55,.55,.55,.55],t:.5}, "ح":{c:[0,0,0,0,0]},
@@ -255,19 +262,14 @@ const POSES = {
   "ي":{c:[1,1,1,1,0]},       "ة":{c:[1,1,1,1,.5]},     "ء":{c:[.7,.9,.9,.9,.9]},
   "لا":{c:[0,0,1,1,1]},      "ال":{c:[0,1,1,1,0],t:.6}
 };
-const REST = {c:[0,0,0,0,0],t:.4};
+const REST = {c:[.15,.15,.15,.15,.15],t:.3};
 
-function normalizeText(t){
-  let o=""; for(const ch of t.replace(TASHKEEL,"")) o+=NORMALIZE[ch]||ch; return o;
-}
+function normalizeText(t){ let o=""; for(const ch of t.replace(TASHKEEL,"")) o+=NORMALIZE[ch]||ch; return o; }
 function tokenize(text){
-  const tokens=[];
-  const digraphs=LETTER_KEYS.filter(k=>k.length>1).sort((a,b)=>b.length-a.length);
+  const tokens=[]; const digraphs=LETTER_KEYS.filter(k=>k.length>1).sort((a,b)=>b.length-a.length);
   let i=0;
   while(i<text.length){
-    const ch=text[i];
-    const ws=i===0||/\s/.test(text[i-1]);
-    let m=false;
+    const ch=text[i]; const ws=i===0||/\s/.test(text[i-1]); let m=false;
     for(const dg of digraphs){
       if(WORD_START_ONLY.includes(dg)&&!ws) continue;
       if(text.startsWith(dg,i)){ tokens.push({kind:"letter",value:dg}); i+=dg.length; m=true; break; }
@@ -282,126 +284,128 @@ function tokenize(text){
 }
 
 /* ============ مشهد 3D ============ */
-let scene,camera,renderer,controls,clock;
-const fingers=[];          // [thumb,index,middle,ring,pinky]
-let thumbBase=null;
-let curCurl=[0,0,0,0,0], tgtCurl=[0,0,0,0,0];
-let curSpread=.4, tgtSpread=.4;
-const CURL_K=[0.92,1.0,0.85];   // معاملات الانحناء للمفاصل الثلاثة (إجمالي ~160°)
+let scene,camera,renderer,controls,clock,mixer;
+const bones={};            // عظام اليد اليمنى
+const FINGERS=["Thumb","Index","Middle","Ring","Pinky"];
+let curCurl=[.15,.15,.15,.15,.15], tgtCurl=[.15,.15,.15,.15,.15];
+let curSpread=.3, tgtSpread=.3;
+let restQuat={};           // وضع الراحة الأصلي لكل عظمة
 
-function makeFinger(lengths,radius,mat){
-  const joints=[]; let parent=null, base=null;
-  lengths.forEach(len=>{
-    const j=new THREE.Group();
-    const mesh=new THREE.Mesh(new THREE.CapsuleGeometry(radius,len,8,16),mat);
-    mesh.position.y=len/2; mesh.castShadow=true;
-    j.add(mesh);
-    const tip=new THREE.Group(); tip.position.y=len; j.add(tip);
-    if(parent) parent.add(j); else base=j;
-    parent=tip; joints.push(j);
-  });
-  return {base,joints};
+// زوايا الانحناء القصوى لكل مفصل (راديان) — تُضبط بصرياً
+const CURL_MAX=[0.95,1.15,0.9];   // المفاصل 1،2،3
+const CURL_AXIS='z';   // محور الانحناء المحلي لأصابع RPM
+const CURL_SIGN=-1;    // اتجاه الطي لليد اليمنى
+const THUMB_AXIS='y'; const THUMB_SIGN=1;
+
+function collectBones(root){
+  root.traverse(o=>{ if(o.isBone||o.type==='Bone') bones[o.name]=o; });
+  // خزّن وضع الراحة
+  Object.values(bones).forEach(b=> restQuat[b.name]=b.quaternion.clone());
 }
 
-function buildHand(){
-  const skin=new THREE.MeshStandardMaterial({color:0xf3c9a4,roughness:.62,metalness:.04});
-  const hand=new THREE.Group();
-
-  // راحة اليد
-  const palm=new THREE.Mesh(new THREE.BoxGeometry(1.78,1.95,0.5),skin);
-  palm.geometry.translate(0,0.15,0);
-  palm.castShadow=true; hand.add(palm);
-
-  // الرسغ
-  const wrist=new THREE.Mesh(new THREE.CylinderGeometry(.62,.5,.9,20),skin);
-  wrist.position.y=-1.25; wrist.castShadow=true; hand.add(wrist);
-
-  // الأصابع الأربعة
-  const specs=[
-    {x: 0.56,len:[.6,.5,.4],   r:.165}, // سبابة
-    {x: 0.19,len:[.66,.55,.43],r:.17},  // وسطى
-    {x:-0.19,len:[.6,.5,.4],   r:.165}, // بنصر
-    {x:-0.55,len:[.46,.4,.32], r:.145}  // خنصر
-  ];
-  specs.forEach(s=>{
-    const f=makeFinger(s.len,s.r,skin);
-    f.base.position.set(s.x,1.05,0);
-    hand.add(f.base);
-    fingers.push(f);
-  });
-
-  // الإبهام
-  const thumb=makeFinger([.56,.5],.205,skin);
-  thumbBase=new THREE.Group();
-  thumbBase.position.set(1.0,-0.35,0.12);
-  thumbBase.add(thumb.base);
-  hand.add(thumbBase);
-  fingers.unshift(thumb);   // ليصبح الترتيب [ابهام,سبابة,وسطى,بنصر,خنصر]
-
-  hand.position.y=0.35;
-  return hand;
+function rotateBone(name, axis, angle){
+  const b=bones[name]; if(!b) return;
+  const base=restQuat[name];
+  const q=new THREE.Quaternion();
+  const e=new THREE.Euler(
+    axis==='x'?angle:0, axis==='y'?angle:0, axis==='z'?angle:0);
+  q.setFromEuler(e);
+  b.quaternion.copy(base).multiply(q);
 }
 
 function applyPose(){
-  // الأصابع الأربعة (1..4)
-  for(let i=1;i<5;i++){
-    const c=curCurl[i];
-    fingers[i].joints.forEach((j,k)=> j.rotation.x=c*CURL_K[k]);
+  // الأصابع الأربعة
+  for(let f=1; f<5; f++){
+    const name=FINGERS[f]; const c=curCurl[f];
+    for(let j=1;j<=3;j++){
+      rotateBone(`RightHand${name}${j}`, CURL_AXIS, CURL_SIGN*c*CURL_MAX[j-1]);
+    }
   }
   // الإبهام
   const tc=curCurl[0];
-  fingers[0].joints.forEach((j,k)=> j.rotation.x=tc*0.9*(k===0?1:1.1));
-  thumbBase.rotation.z=0.55+curSpread*0.7;
-  thumbBase.rotation.x=-0.25+tc*0.5;
+  for(let j=1;j<=3;j++){
+    rotateBone(`RightHandThumb${j}`, CURL_AXIS, CURL_SIGN*tc*CURL_MAX[j-1]*0.7);
+  }
+  // انفراج الإبهام عبر مفصله الأول
+  const tb=bones['RightHandThumb1'];
+  if(tb){
+    const base=restQuat['RightHandThumb1'];
+    const q=new THREE.Quaternion().setFromEuler(
+      new THREE.Euler(0, THUMB_SIGN*curSpread*0.6, CURL_SIGN*tc*CURL_MAX[0]*0.7));
+    tb.quaternion.copy(base).multiply(q);
+  }
 }
 
-function initScene(){
+// زوايا رفع الذراع (تُضبط بصرياً) — لا تتداخل مع عظام الأصابع
+const ARM_POSE={
+  RightArm:[0.0,0.0,-0.95],
+  RightForeArm:[0.0,0.0,-0.95],
+  RightHand:[0.0,0.0,-1.5]
+};
+function poseArmForSigning(){
+  for(const [name,r] of Object.entries(ARM_POSE)){
+    const b=bones[name]; if(!b) continue;
+    const q=new THREE.Quaternion().setFromEuler(new THREE.Euler(r[0],r[1],r[2]));
+    b.quaternion.copy(restQuat[name]).multiply(q);   // لا نعدّل restQuat
+  }
+}
+
+let avatarReady=false;
+function initScene(cb){
   const host=document.getElementById("stage3d");
   scene=new THREE.Scene();
   clock=new THREE.Clock();
 
-  camera=new THREE.PerspectiveCamera(42,host.clientWidth/host.clientHeight,0.1,100);
-  camera.position.set(0,0.6,8.2);
+  camera=new THREE.PerspectiveCamera(40,host.clientWidth/host.clientHeight,0.1,100);
+  camera.position.set(0,1.45,1.5);
 
   renderer=new THREE.WebGLRenderer({antialias:true,alpha:true});
   renderer.setPixelRatio(Math.min(devicePixelRatio,2));
   renderer.setSize(host.clientWidth,host.clientHeight);
-  renderer.shadowMap.enabled=true;
-  renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.shadowMap.enabled=true; renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+  renderer.outputColorSpace=THREE.SRGBColorSpace;
   host.insertBefore(renderer.domElement,host.firstChild);
 
-  // إضاءة
-  scene.add(new THREE.HemisphereLight(0xbcd4ff,0x1a2436,0.95));
-  const key=new THREE.DirectionalLight(0xffffff,1.6);
-  key.position.set(4,7,6); key.castShadow=true;
-  key.shadow.mapSize.set(1024,1024);
-  key.shadow.camera.near=1; key.shadow.camera.far=25;
-  scene.add(key);
-  const rim=new THREE.DirectionalLight(0x9ec5ff,0.7);
-  rim.position.set(-5,2,-4); scene.add(rim);
-
-  // أرضية لاستقبال الظل
-  const ground=new THREE.Mesh(
-    new THREE.CircleGeometry(9,48),
-    new THREE.ShadowMaterial({opacity:.32})
-  );
-  ground.rotation.x=-Math.PI/2; ground.position.y=-3.2;
-  ground.receiveShadow=true; scene.add(ground);
-
-  // اليد
-  const hand=buildHand();
-  scene.add(hand);
-  applyPose();
+  scene.add(new THREE.HemisphereLight(0xcfe2ff,0x202a3a,1.1));
+  const key=new THREE.DirectionalLight(0xffffff,1.7);
+  key.position.set(2,4,4); key.castShadow=true;
+  key.shadow.mapSize.set(1024,1024); scene.add(key);
+  const rim=new THREE.DirectionalLight(0x9ec5ff,0.8);
+  rim.position.set(-3,2,-3); scene.add(rim);
 
   controls=new OrbitControls(camera,renderer.domElement);
-  controls.enableDamping=true; controls.dampingFactor=.09;
-  controls.enablePan=false;
-  controls.minDistance=5; controls.maxDistance=12;
-  controls.target.set(0,0.2,0);
+  controls.enableDamping=true; controls.dampingFactor=.09; controls.enablePan=false;
+  controls.minDistance=0.8; controls.maxDistance=4;
+  controls.target.set(0,1.35,0);
 
-  document.getElementById("loading").style.display="none";
-  window.addEventListener("resize",onResize);
-  animate();
+  const loader=new GLTFLoader();
+  loader.load('assets/avatar/arab-man.glb', (gltf)=>{
+    const model=gltf.scene;
+    model.traverse(o=>{ if(o.isMesh){ o.castShadow=true; o.frustumCulled=false; } });
+    scene.add(model);
+    collectBones(model);
+    poseArmForSigning();
+    applyPose();
+    // تأطير الكاميرا على منطقة اليد + الرأس
+    scene.updateMatrixWorld(true);
+    const hp=new THREE.Vector3(); bones['RightHand'].getWorldPosition(hp);
+    const focus=new THREE.Vector3(hp.x*0.4, hp.y+0.12, 0);
+    controls.target.copy(focus);
+    camera.position.set(focus.x-0.05, focus.y+0.02, focus.z+0.95);
+    controls.update();
+    avatarReady=true;
+    window.AV={bones,restQuat,scene,camera,controls,renderer,THREE,applyPose,poseArmForSigning,
+      setBone:(n,x,y,z)=>{const b=bones[n];if(!b)return'no bone';
+        const q=new THREE.Quaternion().setFromEuler(new THREE.Euler(x,y,z));
+        b.quaternion.copy(restQuat[n]).multiply(q);return'ok';}};
+    document.getElementById("loading").style.display="none";
+    window.addEventListener("resize",onResize);
+    animate();
+    if(cb) cb();
+  }, undefined, (err)=>{
+    document.getElementById("loading").innerHTML="⚠️ تعذّر تحميل الشخصية 3D.";
+    console.error(err);
+  });
 }
 
 function onResize(){
@@ -415,10 +419,10 @@ function onResize(){
 function animate(){
   requestAnimationFrame(animate);
   const dt=Math.min(clock.getDelta(),0.05);
-  const ease=Math.min(1,dt*9);
+  const ease=Math.min(1,dt*8);
   for(let i=0;i<5;i++) curCurl[i]+=(tgtCurl[i]-curCurl[i])*ease;
   curSpread+=(tgtSpread-curSpread)*ease;
-  applyPose();
+  if(avatarReady) applyPose();
   controls.update();
   renderer.render(scene,camera);
 }
@@ -431,7 +435,7 @@ function setTarget(token){
   if(token.kind==="letter"){ pose=POSES[token.value]||REST; label=token.value; }
   else if(token.kind==="unknown"){ pose=REST; label="غير معروف"; }
   tgtCurl=pose.c.slice();
-  tgtSpread=(pose.t!==undefined)?pose.t:0.4;
+  tgtSpread=(pose.t!==undefined)?pose.t:0.3;
   const lbl=document.getElementById("stageLabel");
   lbl.textContent=label;
   lbl.style.background=token.kind==="space"?"#5b6b7d"
@@ -440,8 +444,7 @@ function setTarget(token){
 }
 
 function showFrame(idx){
-  current=idx;
-  setTarget(sequence[idx]);
+  current=idx; setTarget(sequence[idx]);
   const pct=sequence.length>1?(idx/(sequence.length-1))*100:100;
   document.getElementById("progressFill").style.width=pct+"%";
   const pos=sequence.slice(0,idx+1).filter(x=>x.kind!=="space").length;
@@ -464,35 +467,22 @@ window.translateText=function(){
   }
   sequence=tokens;
   ph.style.display="none"; player.style.display="block";
-  if(!renderer) initScene(); else onResize();
-  stopPlay(); showFrame(0);
+  if(!renderer) initScene(()=>{ stopPlay(); showFrame(0); });
+  else { onResize(); stopPlay(); showFrame(0); }
 };
 
-window.step=function(d){
-  stopPlay();
-  const n=current+d;
-  if(n<0||n>=sequence.length) return;
-  showFrame(n);
-};
+window.step=function(d){ stopPlay(); const n=current+d; if(n<0||n>=sequence.length) return; showFrame(n); };
 window.togglePlay=function(){
   if(playing){ stopPlay(); return; }
   if(current>=sequence.length-1) showFrame(0);
-  playing=true;
-  document.getElementById("btnPlay").textContent="⏸ إيقاف";
-  advance();
+  playing=true; document.getElementById("btnPlay").textContent="⏸ إيقاف"; advance();
 };
 function advance(){
   showFrame(current);
   const speed=parseInt(document.getElementById("speed").value,10);
-  timer=setTimeout(()=>{
-    if(current>=sequence.length-1){ stopPlay(); return; }
-    current++; advance();
-  },speed);
+  timer=setTimeout(()=>{ if(current>=sequence.length-1){ stopPlay(); return; } current++; advance(); },speed);
 }
-function stopPlay(){
-  playing=false; clearTimeout(timer);
-  document.getElementById("btnPlay").textContent="▶️ تشغيل";
-}
+function stopPlay(){ playing=false; clearTimeout(timer); document.getElementById("btnPlay").textContent="▶️ تشغيل"; }
 window.stopPlay=stopPlay;
 window.replay=function(){ stopPlay(); showFrame(0); window.togglePlay(); };
 
