@@ -253,13 +253,13 @@ const POSES = {
   "ا":{c:[0,1,1,1,1],t:1},   "ب":{c:[1,0,1,1,1]},      "ت":{c:[1,0,0,1,1]},
   "ث":{c:[1,0,0,0,1]},       "ج":{c:[.45,.55,.55,.55,.55],t:.5}, "ح":{c:[0,0,0,0,0]},
   "خ":{c:[.3,.45,1,1,1]},    "د":{c:[.5,.2,1,1,1]},    "ذ":{c:[.5,.2,.2,1,1]},
-  "ر":{c:[1,.25,.35,1,1]},   "ز":{c:[.6,0,1,1,0]},     "س":{c:[.5,0,0,0,1]},
-  "ش":{c:[1,0,0,0,0]},       "ص":{c:[.3,.6,.6,1,1]},   "ض":{c:[.3,.6,.6,.6,1]},
-  "ط":{c:[0,1,1,1,0]},       "ظ":{c:[0,1,1,0,0]},      "ع":{c:[.8,.85,1,1,1]},
-  "غ":{c:[.8,.85,.85,1,1]},  "ف":{c:[.55,.55,0,0,0]},  "ق":{c:[.55,.5,.5,0,0]},
-  "ك":{c:[0,0,0,1,1]},       "ل":{c:[0,0,1,1,1],t:1},  "م":{c:[1,1,1,1,0]},
-  "ن":{c:[1,1,1,0,0]},       "ه":{c:[.6,.6,.6,.6,.6]}, "و":{c:[0,1,1,1,.25]},
-  "ي":{c:[1,1,1,1,0]},       "ة":{c:[1,1,1,1,.5]},     "ء":{c:[.7,.9,.9,.9,.9]},
+  "ر":{c:[1,.25,.35,1,1]},   "ز":{c:[1,0,0,1,1]},      "س":{c:[.5,0,0,0,1]},
+  "ش":{c:[0,0,0,0,0]},       "ص":{c:[.3,.6,.6,1,1]},   "ض":{c:[.3,.6,.6,.6,1]},
+  "ط":{c:[0,1,1,1,0]},       "ظ":{c:[0,1,1,0,0]},      "ع":{c:[.3,.3,.3,.3,.3]},
+  "غ":{c:[.35,.3,.55,.7,.7]},"ف":{c:[.55,.55,0,0,0]},  "ق":{c:[.55,.5,.5,0,0]},
+  "ك":{c:[0,0,0,0,0]},       "ل":{c:[0,0,1,1,1],t:1},  "م":{c:[1,1,1,1,0]},
+  "ن":{c:[1,1,1,1,0]},       "ه":{c:[.6,.6,.6,.6,.6]}, "و":{c:[0,1,1,1,.25]},
+  "ي":{c:[0,1,1,1,0]},       "ة":{c:[1,1,1,1,.5]},     "ء":{c:[.7,.9,.9,.9,.9]},
   "لا":{c:[0,0,1,1,1]},      "ال":{c:[0,1,1,1,0],t:.6}
 };
 const REST = {c:[.15,.15,.15,.15,.15],t:.3};
@@ -294,7 +294,11 @@ let restQuat={};           // وضع الراحة الأصلي لكل عظمة
 // زوايا الانحناء القصوى لكل مفصل (راديان)
 const CURL_MAX=[0.95,1.15,0.9];   // المفاصل 1،2،3
 let CURL_SIGN=1;       // يُضبط تلقائياً حسب اتجاه الطيّ الصحيح
-const flexAxis={};     // محور الطيّ النقيّ لكل عظمة إصبع (في فضائها المحلي)
+let SPREAD_SIGN=1;     // يُضبط تلقائياً
+const flexAxis={};     // محور الطيّ النقيّ لكل عظمة إصبع
+const spreadAxis={};   // محور التباعد لمفصل كل إصبع الأول
+// تباعد طبيعي للأصابع (سبابة..خنصر) — مروحة تمنع التلاصق
+const SPREAD=[0.20,0.07,-0.07,-0.20];
 
 function collectBones(root){
   root.traverse(o=>{ if(o.isBone||o.type==='Bone') bones[o.name]=o; });
@@ -307,18 +311,16 @@ function collectBones(root){
 function computeFlexAxes(){
   scene.updateMatrixWorld(true);
   const worldPalm=new THREE.Vector3(0,0,1); // الكفّ يواجه +Z بعد التوجيه
-  const pairs=[];
   ["Index","Middle","Ring","Pinky","Thumb"].forEach(f=>{
-    for(let j=1;j<=3;j++) pairs.push([`RightHand${f}${j}`, `RightHand${f}${j+1}`]);
-  });
-  let probeAngle=0;
-  pairs.forEach(([bn,cn])=>{
-    const b=bones[bn], c=bones[cn]; if(!b||!c) return;
-    const boneDir=c.position.clone().normalize();        // اتجاه العظمة محلياً
-    const qbw=new THREE.Quaternion(); b.getWorldQuaternion(qbw);
-    const palmLocal=worldPalm.clone().applyQuaternion(qbw.clone().invert()).normalize();
-    const axis=new THREE.Vector3().crossVectors(boneDir, palmLocal).normalize();
-    flexAxis[bn]=axis;
+    for(let j=1;j<=3;j++){
+      const bn=`RightHand${f}${j}`, cn=`RightHand${f}${j+1}`;
+      const b=bones[bn], c=bones[cn]; if(!b||!c) continue;
+      const boneDir=c.position.clone().normalize();        // اتجاه العظمة محلياً
+      const qbw=new THREE.Quaternion(); b.getWorldQuaternion(qbw);
+      const palmLocal=worldPalm.clone().applyQuaternion(qbw.clone().invert()).normalize();
+      flexAxis[bn]=new THREE.Vector3().crossVectors(boneDir, palmLocal).normalize();
+      if(j===1) spreadAxis[bn]=palmLocal.clone();   // محور التباعد (دوران حول مستوى الكفّ)
+    }
   });
   // ضبط اتجاه الطيّ: نتأكد أن الطيّ يقرّب طرف السبابة نحو الكفّ
   const idx=bones['RightHandIndex1'], tip=bones['RightHandIndex4'];
@@ -344,10 +346,21 @@ function rotateFlex(name, angle){
 // وضع طبيعي ثابت للإبهام (يُضبط بصرياً) بدل الطيّ التلقائي الذي يجعله يطفو
 const THUMB_POSE={1:[0,0,0],2:[0,0,0],3:[0,0,0]};
 function applyPose(){
-  // الأصابع الأربعة — طيّ نقيّ حول المحور المحسوب
+  // الأصابع الأربعة — طيّ نقيّ + تباعد طبيعي على المفصل الأول
   for(let f=1; f<5; f++){
     const name=FINGERS[f]; const c=curCurl[f];
-    for(let j=1;j<=3;j++) rotateFlex(`RightHand${name}${j}`, c*CURL_MAX[j-1]);
+    for(let j=1;j<=3;j++){
+      const bn=`RightHand${name}${j}`, b=bones[bn], ax=flexAxis[bn];
+      if(!b||!ax) continue;
+      let q=new THREE.Quaternion().setFromAxisAngle(ax, CURL_SIGN*c*CURL_MAX[j-1]);
+      if(j===1 && spreadAxis[bn]){
+        // التباعد يقلّ مع الطيّ (الأصابع تتقارب عند القبض)
+        const sp=SPREAD[f-1]*(1-0.6*c);
+        const sq=new THREE.Quaternion().setFromAxisAngle(spreadAxis[bn], SPREAD_SIGN*sp);
+        q=sq.multiply(q);
+      }
+      b.quaternion.copy(restQuat[bn]).multiply(q);
+    }
   }
   // الإبهام: وضع طبيعي ثابت (بلا طيّ معاكس) — يستقرّ بجانب اليد
   for(let j=1;j<=3;j++){
