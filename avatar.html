@@ -340,7 +340,7 @@ function applyPose(){
 const ARM_POSE={
   RightArm:[0.0,0.0,-0.95],
   RightForeArm:[0.0,0.0,-0.95],
-  RightHand:[0.0,0.0,-1.5]
+  RightHand:[1.5,0.2,0.45]
 };
 function poseArmForSigning(){
   for(const [name,r] of Object.entries(ARM_POSE)){
@@ -375,7 +375,7 @@ function initScene(cb){
 
   controls=new OrbitControls(camera,renderer.domElement);
   controls.enableDamping=true; controls.dampingFactor=.09; controls.enablePan=false;
-  controls.minDistance=0.8; controls.maxDistance=4;
+  controls.minDistance=0.18; controls.maxDistance=4;
   controls.target.set(0,1.35,0);
 
   const loader=new GLTFLoader();
@@ -386,12 +386,11 @@ function initScene(cb){
     collectBones(model);
     poseArmForSigning();
     applyPose();
-    // تأطير الكاميرا على منطقة اليد + الرأس
+    // تأطير الكاميرا عن قرب على اليد لإظهار شكل الأصابع بوضوح
     scene.updateMatrixWorld(true);
     const hp=new THREE.Vector3(); bones['RightHand'].getWorldPosition(hp);
-    const focus=new THREE.Vector3(hp.x*0.4, hp.y+0.12, 0);
-    controls.target.copy(focus);
-    camera.position.set(focus.x-0.05, focus.y+0.02, focus.z+0.95);
+    controls.target.set(hp.x, hp.y+0.02, hp.z);
+    camera.position.set(hp.x, hp.y+0.10, hp.z+0.50);
     controls.update();
     avatarReady=true;
     window.AV={bones,restQuat,scene,camera,controls,renderer,THREE,applyPose,poseArmForSigning,
