@@ -412,6 +412,31 @@ function poseWristToCamera(){
   restQuat['RightHand']=H.quaternion.clone();   // اجعلها مرجع الأصابع
 }
 
+// أكمام بيضاء طويلة (للثوب) تتبع عظام الذراعين
+function addThobeSleeves(model){
+  const byName={};
+  model.traverse(o=>{ if(o.isBone||o.type==='Bone') byName[o.name]=o; });
+  const white=new THREE.MeshStandardMaterial({color:0xf7f7f4, roughness:0.86, metalness:0.0, side:THREE.DoubleSide});
+  const segs=[
+    {bone:'RightArm', child:'RightForeArm', rTop:0.085, rBot:0.075},
+    {bone:'RightForeArm', child:'RightHand', rTop:0.075, rBot:0.060},
+    {bone:'LeftArm', child:'LeftForeArm', rTop:0.085, rBot:0.075},
+    {bone:'LeftForeArm', child:'LeftHand', rTop:0.075, rBot:0.060},
+  ];
+  segs.forEach(s=>{
+    const b=byName[s.bone], c=byName[s.child]; if(!b||!c) return;
+    const dir=c.position.clone(); const len=dir.length();
+    // أسطوانة مفتوحة الطرفين: أعرض عند الأعلى (نحو الجذع)، أضيق نحو اليد
+    const geo=new THREE.CylinderGeometry(s.rBot, s.rTop, len*1.06, 18, 1, true);
+    const mesh=new THREE.Mesh(geo, white);
+    mesh.castShadow=true; mesh.frustumCulled=false;
+    const q=new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0), dir.clone().normalize());
+    mesh.quaternion.copy(q);
+    mesh.position.copy(dir.clone().multiplyScalar(0.5));
+    b.add(mesh);
+  });
+}
+
 let avatarReady=false;
 function initScene(cb){
   const host=document.getElementById("stage3d");
@@ -443,7 +468,21 @@ function initScene(cb){
   const loader=new GLTFLoader();
   loader.load('assets/avatar/arab-man.glb', (gltf)=>{
     const model=gltf.scene;
-    model.traverse(o=>{ if(o.isMesh){ o.castShadow=true; o.frustumCulled=false; } });
+    model.traverse(o=>{
+      if(o.isMesh){
+        o.castShadow=true; o.frustumCulled=false;
+        // تحويل الملابس إلى الثوب الكويتي الأبيض
+        const mats=Array.isArray(o.material)?o.material:[o.material];
+        mats.forEach(m=>{
+          if(!m||!m.name) return;
+          if(m.name.indexOf('Outfit')>=0){      // القميص والسروال → أبيض ناصع بلا شعار
+            m.map=null; m.color.setRGB(0.97,0.97,0.96);
+            m.roughness=0.85; m.metalness=0.0; m.needsUpdate=true;
+          }
+        });
+      }
+    });
+    addThobeSleeves(model);   // أكمام بيضاء طويلة للثوب
     scene.add(model);
     collectBones(model);
     poseArmForSigning();
