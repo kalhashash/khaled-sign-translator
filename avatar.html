@@ -341,15 +341,24 @@ function rotateFlex(name, angle){
   b.quaternion.copy(restQuat[name]).multiply(q);
 }
 
+// وضع طبيعي ثابت للإبهام (يُضبط بصرياً) بدل الطيّ التلقائي الذي يجعله يطفو
+const THUMB_POSE={1:[0,0,0],2:[0,0,0],3:[0,0,0]};
 function applyPose(){
-  // الأصابع الأربعة + الإبهام — طيّ نقيّ حول المحور المحسوب
+  // الأصابع الأربعة — طيّ نقيّ حول المحور المحسوب
   for(let f=1; f<5; f++){
     const name=FINGERS[f]; const c=curCurl[f];
     for(let j=1;j<=3;j++) rotateFlex(`RightHand${name}${j}`, c*CURL_MAX[j-1]);
   }
+  // الإبهام: وضع طبيعي ثابت + طيّ خفيف حسب الحرف (نطاق صغير لتفادي الطفو)
   const tc=curCurl[0];
-  for(let j=1;j<=3;j++) rotateFlex(`RightHandThumb${j}`, tc*CURL_MAX[j-1]*0.7);
+  for(let j=1;j<=3;j++){
+    const bn=`RightHandThumb${j}`, b=bones[bn]; if(!b) continue;
+    const base=THUMB_POSE[j];
+    const e=new THREE.Euler(base[0], base[1], base[2]+CURL_SIGN*tc*0.35);
+    b.quaternion.copy(restQuat[bn]).multiply(new THREE.Quaternion().setFromEuler(e));
+  }
 }
+window.__setThumb=(j,x,y,z)=>{THUMB_POSE[j]=[x,y,z];};
 
 // زوايا رفع الذراع: ترفع اليد بجانب الرأس أمام الخلفية النظيفة
 const ARM_POSE={
