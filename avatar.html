@@ -291,11 +291,10 @@ let curCurl=[.15,.15,.15,.15,.15], tgtCurl=[.15,.15,.15,.15,.15];
 let curSpread=.3, tgtSpread=.3;
 let restQuat={};           // وضع الراحة الأصلي لكل عظمة
 
-// زوايا الانحناء القصوى لكل مفصل (راديان) — تُضبط بصرياً
+// زوايا الانحناء القصوى لكل مفصل (راديان)
 const CURL_MAX=[0.95,1.15,0.9];   // المفاصل 1،2،3
-const CURL_AXIS='z';   // محور الانحناء المحلي لأصابع RPM
-const CURL_SIGN=-1;    // اتجاه الطي لليد اليمنى
-const THUMB_AXIS='y'; const THUMB_SIGN=1;
+let CURL_SIGN=1;       // يُضبط تلقائياً حسب اتجاه الطيّ الصحيح
+const flexAxis={};     // محور الطيّ النقيّ لكل عظمة إصبع (في فضائها المحلي)
 
 function collectBones(root){
   root.traverse(o=>{ if(o.isBone||o.type==='Bone') bones[o.name]=o; });
@@ -303,37 +302,53 @@ function collectBones(root){
   Object.values(bones).forEach(b=> restQuat[b.name]=b.quaternion.clone());
 }
 
-function rotateBone(name, axis, angle){
-  const b=bones[name]; if(!b) return;
-  const base=restQuat[name];
-  const q=new THREE.Quaternion();
-  const e=new THREE.Euler(
-    axis==='x'?angle:0, axis==='y'?angle:0, axis==='z'?angle:0);
-  q.setFromEuler(e);
-  b.quaternion.copy(base).multiply(q);
+// حساب محور الطيّ النقيّ لكل مفصل: عمودي على اتجاه العظمة ومستوى الكفّ
+// فينثني الإصبع للأمام مباشرةً دون انحراف جانبي أو تقاطع
+function computeFlexAxes(){
+  scene.updateMatrixWorld(true);
+  const worldPalm=new THREE.Vector3(0,0,1); // الكفّ يواجه +Z بعد التوجيه
+  const pairs=[];
+  ["Index","Middle","Ring","Pinky","Thumb"].forEach(f=>{
+    for(let j=1;j<=3;j++) pairs.push([`RightHand${f}${j}`, `RightHand${f}${j+1}`]);
+  });
+  let probeAngle=0;
+  pairs.forEach(([bn,cn])=>{
+    const b=bones[bn], c=bones[cn]; if(!b||!c) return;
+    const boneDir=c.position.clone().normalize();        // اتجاه العظمة محلياً
+    const qbw=new THREE.Quaternion(); b.getWorldQuaternion(qbw);
+    const palmLocal=worldPalm.clone().applyQuaternion(qbw.clone().invert()).normalize();
+    const axis=new THREE.Vector3().crossVectors(boneDir, palmLocal).normalize();
+    flexAxis[bn]=axis;
+  });
+  // ضبط اتجاه الطيّ: نتأكد أن الطيّ يقرّب طرف السبابة نحو الكفّ
+  const idx=bones['RightHandIndex1'], tip=bones['RightHandIndex4'];
+  if(idx && tip && flexAxis['RightHandIndex1']){
+    const before=new THREE.Vector3(); tip.getWorldPosition(before);
+    const baseQ=restQuat['RightHandIndex1'];
+    idx.quaternion.copy(baseQ).multiply(new THREE.Quaternion().setFromAxisAngle(flexAxis['RightHandIndex1'],0.6));
+    scene.updateMatrixWorld(true);
+    const after=new THREE.Vector3(); tip.getWorldPosition(after);
+    // إذا تحرّك الطرف بعيداً عن الكاميرا (‎+Z‎) فالطيّ صحيح؛ وإلا اعكس
+    if(after.z - before.z < 0) CURL_SIGN=-1;
+    idx.quaternion.copy(baseQ); // إعادة للراحة
+    scene.updateMatrixWorld(true);
+  }
+}
+
+function rotateFlex(name, angle){
+  const b=bones[name], ax=flexAxis[name]; if(!b||!ax) return;
+  const q=new THREE.Quaternion().setFromAxisAngle(ax, CURL_SIGN*angle);
+  b.quaternion.copy(restQuat[name]).multiply(q);
 }
 
 function applyPose(){
-  // الأصابع الأربعة
+  // الأصابع الأربعة + الإبهام — طيّ نقيّ حول المحور المحسوب
   for(let f=1; f<5; f++){
     const name=FINGERS[f]; const c=curCurl[f];
-    for(let j=1;j<=3;j++){
-      rotateBone(`RightHand${name}${j}`, CURL_AXIS, CURL_SIGN*c*CURL_MAX[j-1]);
-    }
+    for(let j=1;j<=3;j++) rotateFlex(`RightHand${name}${j}`, c*CURL_MAX[j-1]);
   }
-  // الإبهام
   const tc=curCurl[0];
-  for(let j=1;j<=3;j++){
-    rotateBone(`RightHandThumb${j}`, CURL_AXIS, CURL_SIGN*tc*CURL_MAX[j-1]*0.7);
-  }
-  // انفراج الإبهام عبر مفصله الأول
-  const tb=bones['RightHandThumb1'];
-  if(tb){
-    const base=restQuat['RightHandThumb1'];
-    const q=new THREE.Quaternion().setFromEuler(
-      new THREE.Euler(0, THUMB_SIGN*curSpread*0.6, CURL_SIGN*tc*CURL_MAX[0]*0.7));
-    tb.quaternion.copy(base).multiply(q);
-  }
+  for(let j=1;j<=3;j++) rotateFlex(`RightHandThumb${j}`, tc*CURL_MAX[j-1]*0.7);
 }
 
 // زوايا رفع الذراع: ترفع اليد بجانب الرأس أمام الخلفية النظيفة
@@ -412,6 +427,7 @@ function initScene(cb){
     collectBones(model);
     poseArmForSigning();
     poseWristToCamera();
+    computeFlexAxes();
     applyPose();
     // تأطير الكاميرا على اليد المرفوعة بجانب الرأس
     scene.updateMatrixWorld(true);
