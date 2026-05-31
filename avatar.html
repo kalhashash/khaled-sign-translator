@@ -349,13 +349,12 @@ function applyPose(){
     const name=FINGERS[f]; const c=curCurl[f];
     for(let j=1;j<=3;j++) rotateFlex(`RightHand${name}${j}`, c*CURL_MAX[j-1]);
   }
-  // الإبهام: وضع طبيعي ثابت + طيّ خفيف حسب الحرف (نطاق صغير لتفادي الطفو)
-  const tc=curCurl[0];
+  // الإبهام: وضع طبيعي ثابت (بلا طيّ معاكس) — يستقرّ بجانب اليد
   for(let j=1;j<=3;j++){
     const bn=`RightHandThumb${j}`, b=bones[bn]; if(!b) continue;
     const base=THUMB_POSE[j];
-    const e=new THREE.Euler(base[0], base[1], base[2]+CURL_SIGN*tc*0.35);
-    b.quaternion.copy(restQuat[bn]).multiply(new THREE.Quaternion().setFromEuler(e));
+    b.quaternion.copy(restQuat[bn]).multiply(
+      new THREE.Quaternion().setFromEuler(new THREE.Euler(base[0],base[1],base[2])));
   }
 }
 window.__setThumb=(j,x,y,z)=>{THUMB_POSE[j]=[x,y,z];};
