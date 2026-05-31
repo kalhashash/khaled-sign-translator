@@ -167,9 +167,9 @@
     max-width: 86%; max-height: 78%;
     object-fit: contain;
     filter: drop-shadow(0 14px 26px rgba(0,0,0,.55));
-    transition: opacity .16s ease, transform .16s ease;
+    transition: opacity .28s ease, transform .28s ease;
   }
-  .stage.swap img { opacity: 0; transform: scale(.9); }
+  .stage.swap img { opacity: 0; transform: scale(.94); }
   .stage .ph {
     width: 64%; aspect-ratio: 1;
     display: grid; place-items: center;
@@ -365,7 +365,7 @@
     <div class="row">
       <button class="btn-primary" onclick="translateText()">🎬 ترجم إلى لغة الإشارة</button>
       <button class="btn-ghost" onclick="clearAll()">مسح</button>
-      <button class="btn-accent" onclick="location.href='avatar.html'">🧊 وضع الأفاتار 3D</button>
+      <button class="btn-accent" onclick="location.href='avatar.html'">🧊 وضع الأفاتار 3D (تجريبي)</button>
     </div>
     <div class="hint">يدعم: <b>تهجئة الحروف بالأصابع</b> · إشارتَي «ال» و«لا» · حذف التشكيل تلقائياً</div>
   </div>
@@ -551,6 +551,11 @@ function translateText() {
   placeholder.style.display = "none";
   player.style.display = "block";
 
+  // تحميل مسبق لكل صور الحروف لانتقال سلس بلا وميض
+  tokens.filter(t => t.kind === "letter").forEach(t => {
+    const im = new Image(); im.src = SIGNS_PATH + LETTERS[t.value] + ".png";
+  });
+
   buildThumbs();
   current = 0;
   showFrame(0);
@@ -631,7 +636,7 @@ function showFrame(idx) {
       label.style.background = "var(--miss)";
     }
     stage.classList.remove("swap");
-  }, 130);
+  }, 180);
 
   const pct = sequence.length > 1 ? (idx / (sequence.length - 1)) * 100 : 100;
   document.getElementById("progressFill").style.width = pct + "%";
