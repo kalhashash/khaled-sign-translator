@@ -252,6 +252,29 @@
   }
   .empty .big { font-size: 2.6rem; display: block; margin-bottom: 6px; opacity: .55; }
 
+  /* شريط الحروف مع تمييز الحرف الحالي */
+  .text-track {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    direction: rtl; justify-content: center; margin-bottom: 16px;
+  }
+  .text-track .ch {
+    font-size: 1.5rem; font-weight: 700;
+    padding: 4px 12px; border-radius: 10px;
+    background: #eef3f9; color: var(--ink);
+    transition: background .15s, color .15s, transform .15s;
+  }
+  .text-track .ch.active {
+    background: linear-gradient(135deg, var(--brand), var(--brand-2));
+    color: #fff; transform: scale(1.14);
+    box-shadow: var(--shadow-sm);
+  }
+  .text-track .ch.sp { background: transparent; min-width: 8px; padding: 4px 2px; }
+  .btn-icon.on {
+    background: linear-gradient(135deg, var(--accent), var(--accent-d));
+    color: #3a2a05;
+  }
+  #btnMic.rec { background: var(--miss); color: #fff; }
+
   /* ===== بنك المفردات ===== */
   .vsearch {
     width: 100%; font-family: inherit; font-size: 1rem;
@@ -364,10 +387,12 @@
     <textarea id="input" placeholder="مثال:  مرحبا بك في البنك" autofocus></textarea>
     <div class="row">
       <button class="btn-primary" onclick="translateText()">🎬 ترجم إلى لغة الإشارة</button>
+      <button class="btn-ghost" id="btnMic" onclick="startVoice()">🎤 إدخال صوتي</button>
+      <button class="btn-ghost" onclick="speakText()">🔊 نطق الكلمة</button>
       <button class="btn-ghost" onclick="clearAll()">مسح</button>
       <button class="btn-accent" onclick="location.href='avatar.html'">🧊 وضع الأفاتار 3D (تجريبي)</button>
     </div>
-    <div class="hint">يدعم: <b>تهجئة الحروف بالأصابع</b> · إشارتَي «ال» و«لا» · حذف التشكيل تلقائياً</div>
+    <div class="hint">يدعم: <b>تهجئة الحروف بالأصابع</b> · إشارتَي «ال» و«لا» · حذف التشكيل تلقائياً · مسافة=تشغيل، الأسهم=تنقّل</div>
   </div>
 
   <!-- المشغّل -->
@@ -386,6 +411,7 @@
     </div>
 
     <div id="player">
+      <div id="textTrack" class="text-track"></div>
       <div class="stage" id="stage">
         <img id="stageImg" alt="">
         <div class="stage-label" id="stageLabel"></div>
@@ -399,6 +425,8 @@
         <button class="btn-accent btn-icon" id="btnPlay" onclick="togglePlay()">▶️ تشغيل</button>
         <button class="btn-ghost btn-icon" id="btnNext" onclick="step(1)" title="التالي">⏭</button>
         <button class="btn-ghost btn-icon" onclick="replay()" title="إعادة">🔄</button>
+        <button class="btn-ghost btn-icon" id="btnLoop" onclick="toggleLoop()" title="تكرار مستمر">🔁</button>
+        <button class="btn-ghost btn-icon" onclick="exportImage()" title="حفظ كصورة">💾</button>
         <label class="speed">
           <span>🐢</span>
           <input type="range" id="speed" min="200" max="1500" step="100" value="550">
@@ -557,12 +585,24 @@ function translateText() {
   });
 
   buildThumbs();
+  buildTextTrack();
   current = 0;
   showFrame(0);
 
   let msg = `✅ عدد الحروف: ${letterCount}`;
   if (unknown.size) msg += ` — رموز غير معروفة (تُتخطّى): ${[...unknown].join(" ")}`;
   warnings.innerHTML = `<div class="warn">${msg}</div>`;
+}
+
+function buildTextTrack() {
+  const box = document.getElementById("textTrack");
+  box.innerHTML = "";
+  sequence.forEach(t => {
+    const s = document.createElement("span");
+    if (t.kind === "space") { s.className = "ch sp"; s.innerHTML = "&nbsp;"; }
+    else { s.className = "ch"; s.textContent = (t.kind === "letter") ? t.value : (t.value.trim() || "·"); }
+    box.appendChild(s);
+  });
 }
 
 function buildThumbs() {
@@ -650,6 +690,10 @@ function showFrame(idx) {
   const activeThumb = document.querySelectorAll(".thumb")[idx];
   if (activeThumb) activeThumb.scrollIntoView({ block:"nearest", inline:"center" });
 
+  // تمييز الحرف الحالي في شريط النص
+  document.querySelectorAll("#textTrack .ch").forEach((el, i) =>
+    el.classList.toggle("active", i === idx));
+
   document.getElementById("btnPrev").disabled = idx === 0;
   document.getElementById("btnNext").disabled = idx === sequence.length - 1;
 }
@@ -674,10 +718,20 @@ function advance() {
   showFrame(current);
   const speed = parseInt(document.getElementById("speed").value, 10);
   timer = setTimeout(() => {
-    if (current >= sequence.length - 1) { stopPlay(); return; }
+    if (current >= sequence.length - 1) {
+      if (loopOn) { current = 0; advance(); }   // تكرار مستمر
+      else stopPlay();
+      return;
+    }
     current++;
     advance();
   }, speed);
+}
+
+let loopOn = false;
+function toggleLoop() {
+  loopOn = !loopOn;
+  document.getElementById("btnLoop").classList.toggle("on", loopOn);
 }
 
 function stopPlay() {
@@ -702,6 +756,98 @@ function clearAll() {
   ph.innerHTML = '<span class="big">🖐️</span>النتيجة المتحركة ستظهر هنا بعد الترجمة.';
   document.getElementById("input").focus();
 }
+
+// ===== إدخال صوتي (تكلّم فيترجم) =====
+let recog = null;
+function startVoice() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const btn = document.getElementById("btnMic");
+  if (!SR) { alert("متصفحك لا يدعم الإدخال الصوتي. جرّب متصفح Chrome."); return; }
+  if (recog) { recog.stop(); return; }
+  recog = new SR();
+  recog.lang = "ar-SA"; recog.interimResults = false; recog.maxAlternatives = 1;
+  btn.classList.add("rec"); btn.textContent = "🎙️ ...استمع";
+  recog.onresult = (e) => {
+    const txt = e.results[0][0].transcript;
+    document.getElementById("input").value = txt;
+    translateText();
+  };
+  recog.onerror = () => {};
+  recog.onend = () => {
+    btn.classList.remove("rec"); btn.textContent = "🎤 إدخال صوتي"; recog = null;
+  };
+  recog.start();
+}
+
+// ===== نطق الكلمة صوتياً =====
+function speakText() {
+  const txt = document.getElementById("input").value.trim();
+  if (!txt) { alert("اكتب نصاً أولاً."); return; }
+  if (!window.speechSynthesis) { alert("متصفحك لا يدعم النطق الصوتي."); return; }
+  const u = new SpeechSynthesisUtterance(txt);
+  u.lang = "ar-SA"; u.rate = 0.9;
+  speechSynthesis.cancel(); speechSynthesis.speak(u);
+}
+
+// ===== حفظ/مشاركة النتيجة كصورة واحدة =====
+function exportImage() {
+  const letters = sequence.filter(t => t.kind !== "space");
+  if (!letters.length) { alert("لا توجد نتيجة للحفظ."); return; }
+  const TILE = 220, PAD = 18, LBL = 48;
+  const W = letters.length * TILE + PAD * (letters.length + 1);
+  const H = TILE + LBL + PAD * 2;
+  const cv = document.createElement("canvas"); cv.width = W; cv.height = H;
+  const ctx = cv.getContext("2d");
+  ctx.fillStyle = "#ffffff"; ctx.fillRect(0, 0, W, H);
+  let done = 0;
+  const drawLabel = (x, y, txt, color) => {
+    ctx.fillStyle = color; ctx.fillRect(x, y, TILE, LBL);
+    ctx.fillStyle = "#fff"; ctx.font = "bold 30px Tajawal, Arial";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText(txt, x + TILE / 2, y + LBL / 2);
+  };
+  const drawMiss = (x, y, txt) => {
+    ctx.fillStyle = "#fbeceb"; ctx.fillRect(x, y, TILE, TILE);
+    ctx.fillStyle = "#c0504d"; ctx.font = "bold 90px Arial";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText(txt, x + TILE / 2, y + TILE / 2);
+    drawLabel(x, y + TILE, "؟", "#c0504d");
+  };
+  const finish = () => {
+    const a = document.createElement("a");
+    a.download = "ترجمة_لغة_الإشارة.png";
+    a.href = cv.toDataURL("image/png"); a.click();
+  };
+  letters.forEach((t, k) => {
+    const x = W - PAD - (k + 1) * TILE - k * PAD;   // من اليمين لليسار
+    const y = PAD;
+    if (t.kind === "letter") {
+      const img = new Image();
+      img.onload = () => {
+        const r = Math.min(TILE / img.width, TILE / img.height);
+        const w = img.width * r, h = img.height * r;
+        ctx.drawImage(img, x + (TILE - w) / 2, y + (TILE - h) / 2, w, h);
+        drawLabel(x, y + TILE, t.value, "#1f4e8c");
+        if (++done === letters.length) finish();
+      };
+      img.onerror = () => { drawMiss(x, y, "؟"); if (++done === letters.length) finish(); };
+      img.src = SIGNS_PATH + LETTERS[t.value] + ".png";
+    } else {
+      drawMiss(x, y, t.value.trim() || "·");
+      if (++done === letters.length) finish();
+    }
+  });
+}
+
+// ===== اختصارات لوحة المفاتيح =====
+document.addEventListener("keydown", (e) => {
+  if (document.getElementById("player").style.display === "none") return;
+  const tag = (e.target.tagName || "").toLowerCase();
+  if (tag === "textarea" || tag === "input") return;   // لا نعترض الكتابة
+  if (e.code === "Space") { e.preventDefault(); togglePlay(); }
+  else if (e.key === "ArrowRight") { step(1); }
+  else if (e.key === "ArrowLeft") { step(-1); }
+});
 
 // ===== بناء بنك المفردات =====
 function buildVocab() {
